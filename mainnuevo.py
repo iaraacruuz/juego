@@ -99,7 +99,7 @@ def redraw():
 
     # Dibuja los proyectiles
     for bala in mi_personaje.balas:
-        bala.draw(PANTALLA)
+        mi_personaje.dibujar(PANTALLA)
 
     pygame.display.update()
 # bullets=[]
@@ -196,8 +196,9 @@ while True:
         for bala in mi_personaje.balas:
             if bala.rect.colliderect(mi_enemigo.rect):
                 sonido_golpe.play()
-                mi_enemigo.recibir_dano(5)  # Restar 5 puntos de vida al enemigo
+                mi_enemigo.recibir_dano(3)  # Restar 5 puntos de vida al enemigo
                 mi_personaje.balas.remove(bala)
+                
             if bala.x < W and bala.x > 0:
             # Mueve la bala si está dentro de la ventana
                 bala.x += bala.velocidad

@@ -154,8 +154,9 @@ class proyectiles(object):
     # def draw(self, win):
     #         pygame.draw.circle(win, self.color, (self.x, self.y), self.radius)
         # pygame.draw.rect(win, "Blue", self.rect, 2)
-    def draw(self, cuadro):
+    def draw(self, cuadro,bala):
             pygame.draw.circle(cuadro, self.color, (self.x, self.y), self.radius)
+        
 
     def impactar(self, alguien):
         if alguien.salud > 0:
@@ -269,30 +270,29 @@ class Enemigo(pygame.sprite.Sprite):
 
     def recibir_dano(self, cantidad_dano):
         self.salud -= cantidad_dano
-        if self.salud <= 0:
+        if self.salud < 0:
             self.morir()
-        # self.salud -= cantidad_dano
-        # if self.salud < 0:
-        #     self.salud = 0
-        #     self.morir()
-        # Actualizar la barr
+
 
     def morir(self):
-        self.kill()
+            self.kill()
 
 
-    def update(self, pantalla, piso):
+    def update(self, pantalla, lista_plataformas,balas):
         self.animar(pantalla, "camina_" + self.direccion)
         self.mover()
-        self.detectar_colisiones(piso)
-        self.detectar_colisiones_bala(bala)
+        self.detectar_colisiones(lista_plataformas)
+        self.detectar_colisiones_bala(balas)
         # Actualizar balas
         for bala in self.balas:
-            if bala.rect.colliderect(piso):
+            if bala.rect.colliderect(lista_plataformas):
                 self.balas.remove(bala)
             else:
                 bala.mover()
                 
                 bala.draw(pantalla)
                 bala.update()
-                
+
+                if bala.rect.colliderect(self.rect):
+                    self.recibir_dano(1)  # Restar 1 punto de salud al enemigo al recibir un impacto de una bala
+                    self.balas.remove(bala)
