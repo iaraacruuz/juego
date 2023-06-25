@@ -36,7 +36,10 @@ class Personaje:
         self.balas = []
         #VIDA DEL PERSONAJE:
         self.salud= 10
-
+        self.direccion = "derecha"
+        #enemigo:
+        self.enemigo = None  # Referencia al enemigo
+        self.danio_bala = 2  # Daño que causa la bala al enemigo
 
     
     def reescalar_animaciones(self):
@@ -61,7 +64,11 @@ class Personaje:
         self.contador_pasos +=1
 
     def dibujar(self,cuadro):
-        pygame.draw.rect(cuadro,"Red",(self.x+5, self.y-20,50,30))
+        pygame.draw.rect(cuadro, "Red", (self.lados["main"].x + 8, self.lados["main"].y - 50, 75, 20))
+        pygame.draw.rect(cuadro, "Green", (self.lados["main"].x + 8, self.lados["main"].y - 50, 75 - (5 * (10-self.salud)), 20))
+        for bala in self.balas:
+            bala.draw(cuadro,bala)
+
 
     def detectar_colisiones(self, lista_plataformas):
         for piso in lista_plataformas:
@@ -70,7 +77,12 @@ class Personaje:
                     self.lados["main"].right = piso["main"].left
                 elif self.que_hace == "izquierda":
                     self.lados["main"].left = piso["main"].right
-
+        if self.enemigo:
+            for bala in self.balas:
+                if bala.rect.colliderect(self.enemigo.rect):
+                    self.enemigo.salud -= self.danio_bala
+                    self.balas.remove(bala)
+                    break
 
     def update(self,pantalla,piso):
         match self.que_hace:
@@ -114,18 +126,18 @@ class Personaje:
     def lanzar_proyectil(self):
         if len(self.balas) < 10:
             facing = 1 if self.que_hace != "izquierda" else -1
-            # nueva_bala = proyectiles(
-            #     round(self.lados["main"].x + self.lados["main"].width // 2),
-            #     round(self.lados["main"].y + self.lados["main"].height // 2),
-            #     6, (0, 0, 0), facing
-            # )
-            # self.balas.append(nueva_bala)
+
             nueva_bala = proyectiles(
                 round(self.lados["main"].x + self.lados["main"].width // 2),
                 round(self.lados["main"].y + self.lados["main"].height // 2),
                 6, (0, 0, 0), facing
             )
             self.balas.append(nueva_bala)
+            if self.direccion == "derecha":
+                nueva_bala.velocidad = abs(nueva_bala.velocidad)  # Velocidad positiva para lanzar hacia la derecha
+            elif self.direccion == "izquierda":
+                nueva_bala.velocidad = -abs(nueva_bala.velocidad)  # Velocidad negativa para lanzar hacia la izquierda
+
             
 
 class proyectiles(object):
@@ -136,225 +148,48 @@ class proyectiles(object):
             self.color=color
             self.facing= facing
             self.velocidad= 8*facing
-    
-    def draw(self, win):
-        pygame.draw.circle(win, self.color, (self.x, self.y), self.radius)
-
-
-import pygame
-from archivos2 import *
-from animaciones2 import *
-import random
-
-# class Enemigo():
-    # enemigo_camina_derecha=[pygame.image.load("C:/Users/PC/Desktop/Juego/snake/movimiento/4.png"),
-    #                     pygame.image.load("C:/Users/PC/Desktop/Juego/snake/movimiento/5.png"),
-    #                     pygame.image.load("C:/Users/PC/Desktop/Juego/snake/movimiento/6.png"),
-    #                     pygame.image.load("C:/Users/PC/Desktop/Juego/snake/movimiento/7.png"),
-    #                     pygame.image.load("C:/Users/PC/Desktop/Juego/snake/movimiento/8.png"),
-    #                     pygame.image.load("C:/Users/PC/Desktop/Juego/snake/movimiento/10.png"),
-    #                     pygame.image.load("C:/Users/PC/Desktop/Juego/snake/movimiento/11.png"),
-    #                     pygame.image.load("C:/Users/PC/Desktop/Juego/snake/movimiento/12.png"),
-    #                     pygame.image.load("C:/Users/PC/Desktop/Juego/snake/movimiento/31.png"),
-    #                     pygame.image.load("C:/Users/PC/Desktop/Juego/snake/movimiento/32.png"),
-    #                     pygame.image.load("C:/Users/PC/Desktop/Juego/snake/movimiento/33.png"),
-    #                     pygame.image.load("C:/Users/PC/Desktop/Juego/snake/movimiento/34.png"),
-    #                     pygame.image.load("C:/Users/PC/Desktop/Juego/snake/movimiento/35.png"),
-    #                     pygame.image.load("C:/Users/PC/Desktop/Juego/snake/movimiento/36.png")] 
-
-    # enemigo_camina_izquierda= girar_imagenes(enemigo_camina_derecha,True,False)
-    # def __init__(self, x,y,width,height,end):
-    #     # CONFECCION:
-    #     self.x=x
-    #     self.y=y
-    #     self.width=width
-    #     self.height=height
-    #     self.path=[x,end]
-    #     self.walkCount=0
-    #     self.vel=3
-
-    # def draw(self,win):
-    #     self.move()
-    #     if self.walkCount +1>= 33:
-    #         self.walkCount=0
+            self.rect = pygame.Rect(x - radius, y - radius, radius * 2, radius * 2)
         
-    #     if self.vel >0:
-    #         win.blit(self.enemigo_camina_derecha[self.walkCount]// 3, (self.x,self.y))
-    #         self.walkCount+=1
-    #     else:
-    #         win.blit(self.enemigo_camina_izquierda[self.walkCount//3], (self.x,self.y))
-    #         self.walkCount+=1
+
+    # def draw(self, win):
+    #         pygame.draw.circle(win, self.color, (self.x, self.y), self.radius)
+        # pygame.draw.rect(win, "Blue", self.rect, 2)
+    def draw(self, cuadro):
+            pygame.draw.circle(cuadro, self.color, (self.x, self.y), self.radius)
+
+    def impactar(self, alguien):
+        if alguien.salud > 0:
+            alguien.salud -= 1
+        else:
+            del alguien  # Delete the target object
+
+    def mover(self):
+        self.x += self.velocidad
+        self.rect.x = self.x - self.radius
+    def update(self):
+        self.mover()
+
+    # def draw(self, pantalla,balas):
+    #     for bala in balas:
+    #         bala.draw(pantalla)
+    #         self.zona_impacto= (self.x - self.radius,self.y - self.radius,self.radius *2, self.radius*2)
+
+    # def draw(self, win):
+    #     # pygame.draw.circle(win, self.color, (self.x, self.y), self.radius)
+    #     self.zona_impacto= (self.x - self.radius,self.y - self.radius,self.radius *2, self.radius*2)
+    #     pygame.draw.circle(win, self.color, (self.x, self.y), self.radius)
+    #     #en caso de querer visualizar la zona de impacto:
+    #     pygame.draw.rect(win,"Blue", self.zona_impacto,2)
     
-    # def move(self):
-    #     if self.vel> 0:
-    #         if self.path[1] + self.vel > self.x:
-    #             self.x+=self.vel
-    #         else:
-    #             self.vel=self.vel *-1
-    #             self.x+=self.vel
-    #             self.walkCount=0
+    # def impactar(self,alguien):
+    #     if alguien.salud >0:
+    #         alguien.salud -=1
     #     else:
-    #         if self.x > self.path[0] - self.vel:
-    #                 self.x+=self.vel
-    #         else:
-    #             self.vel=self.vel *-1
-    #             self.x +=self.vel
-    #             self.walkCount=0
+    #         del(alguien) #con del se puede eliminar al personaje
 
- 
-# import pygame
-# from archivos2 import *
-# from animaciones2 import *
-# import random
 
-# class Enemigo(pygame.sprite.Sprite):
-#     def __init__(self, tamaño, animaciones, posicion_inicial, velocidad):
-#         super().__init__()
-#         # CONFECCION:
-#         self.ancho = tamaño[0]
-#         self.alto = tamaño[1]
 
-#         # Animaciones:
-#         self.contador_pasos = 0
-#         self.animaciones = animaciones
-#         self.reescalar_animaciones()
-#         self.image = self.diccionario_animaciones["camina_derecha"][self.index_animacion]
-#         # Rectángulos:
-#         rectangulo = self.animaciones["camina_derecha"][0].get_rect()
-#         rectangulo.x = posicion_inicial[0]
-#         rectangulo.y = posicion_inicial[1]
-#         self.lados = obtener_rectangulos(rectangulo)
 
-#         # Movimiento:
-#         self.velocidad = velocidad
-#         self.direccion = random.choice(["izquierda", "derecha"])
-
-#         # Vida del enemigo:
-#         self.salud = 5
-
-#     def reescalar_animaciones(self):
-#         for clave in self.animaciones:
-#             reescalar_imagenes(self.animaciones[clave], (self.ancho, self.alto))
-
-#     def mover(self):
-#         if self.direccion == "derecha":
-#             self.lados["main"].x += self.velocidad
-#         elif self.direccion == "izquierda":
-#             self.lados["main"].x -= self.velocidad
-
-#     def cambiar_direccion(self):
-#         if self.direccion == "derecha":
-#             self.direccion = "izquierda"
-#         elif self.direccion == "izquierda":
-#             self.direccion = "derecha"
-
-#     def animar(self, pantalla, que_animacion):
-#         animacion = self.animaciones[que_animacion]
-#         largo = len(animacion)
-
-#         if self.contador_pasos >= largo:
-#             self.contador_pasos = 0
-
-#         pantalla.blit(animacion[self.contador_pasos], self.lados["main"])
-#         self.contador_pasos += 1
-
-#     def dibujar(self, cuadro):
-#         pygame.draw.rect(cuadro, "Red", (self.x + 5, self.y - 20, 50, 30))
-
-#     def detectar_colisiones(self, lista_plataformas):
-#         for piso in lista_plataformas:
-#             if self.lados["main"].colliderect(piso["main"]):
-#                 self.cambiar_direccion()
-
-#     def recibir_dano(self, cantidad_dano):
-#         self.salud -= cantidad_dano
-#         if self.salud <= 0:
-#             self.morir()
-
-#     def morir(self):
-#         # Acciones a realizar cuando el enemigo muere
-#         pass
-
-#     def update(self, pantalla, piso):
-#         self.animar(pantalla, "camina_" + self.direccion)
-#         self.mover()
-#         self.detectar_colisiones(piso)
-# import pygame
-# from archivos2 import *
-# from animaciones2 import *
-# import random
-
-# class Enemigo(pygame.sprite.Sprite):
-#     def __init__(self, tamaño, animaciones, posicion_inicial, velocidad):
-#         super().__init__()
-#         # CONFECCION:
-#         self.ancho = tamaño[0]
-#         self.alto = tamaño[1]
-
-#         # Animaciones:
-#         self.contador_pasos = 0
-#         self.animaciones = animaciones
-#         self.reescalar_animaciones()
-#         self.image = self.animaciones["camina_derecha"][self.contador_pasos]
-#         self.rect = self.image.get_rect()
-#         self.rect.x = posicion_inicial[0]
-#         self.rect.y = posicion_inicial[1]
-#         self.lados = obtener_rectangulos(self.rect)
-
-#         # Movimiento:
-#         self.velocidad = velocidad
-#         self.direccion = random.choice(["izquierda", "derecha"])
-
-#         # Vida del enemigo:
-#         self.salud = 5
-
-#     def reescalar_animaciones(self):
-#         for clave in self.animaciones:
-#             reescalar_imagenes(self.animaciones[clave], (self.ancho, self.alto))
-
-#     def mover(self):
-#         if self.direccion == "derecha":
-#             self.rect.x += self.velocidad
-#         elif self.direccion == "izquierda":
-#             self.rect.x -= self.velocidad
-
-#     def cambiar_direccion(self):
-#         if self.direccion == "derecha":
-#             self.direccion = "izquierda"
-#         elif self.direccion == "izquierda":
-#             self.direccion = "derecha"
-
-#     def animar(self, pantalla, que_animacion):
-#         animacion = self.animaciones[que_animacion]
-#         largo = len(animacion)
-
-#         if self.contador_pasos >= largo:
-#             self.contador_pasos = 0
-
-#         pantalla.blit(animacion[self.contador_pasos], self.rect)
-#         self.contador_pasos += 1
-
-#     def dibujar(self, cuadro):
-#         pygame.draw.rect(cuadro, "Red", (self.rect.x + 5, self.rect.y - 20, 50, 30))
-
-#     def detectar_colisiones(self, lista_plataformas):
-#         for piso in lista_plataformas:
-#             if self.rect.colliderect(piso["main"]):
-#                 self.cambiar_direccion()
-
-#     def recibir_dano(self, cantidad_dano):
-#         self.salud -= cantidad_dano
-#         if self.salud <= 0:
-#             self.morir()
-
-#     def morir(self):
-#         # Acciones a realizar cuando el enemigo muere
-#         pass
-
-#     def update(self, pantalla, piso):
-#         self.animar(pantalla, "camina_" + self.direccion)
-#         self.mover()
-#         self.detectar_colisiones(piso)
 import pygame
 from archivos2 import *
 from animaciones2 import *
@@ -371,14 +206,10 @@ class Enemigo(pygame.sprite.Sprite):
         self.contador_pasos = 0
         self.animaciones = animaciones
         self.reescalar_animaciones()
-        self.image = self.diccionario_animaciones["camina_derecha"][self.contador_pasos]
-        
-        # Rectángulo:
+        self.image = self.animaciones["camina_derecha"][self.contador_pasos]
         self.rect = self.image.get_rect()
         self.rect.x = posicion_inicial[0]
         self.rect.y = posicion_inicial[1]
-        
-        # Lados:
         self.lados = obtener_rectangulos(self.rect)
 
         # Movimiento:
@@ -386,7 +217,10 @@ class Enemigo(pygame.sprite.Sprite):
         self.direccion = random.choice(["izquierda", "derecha"])
 
         # Vida del enemigo:
-        self.salud = 5
+        self.salud_maxima = 10
+        self.salud = self.salud_maxima
+        #balas:
+        self.balas= []
 
     def reescalar_animaciones(self):
         for clave in self.animaciones:
@@ -415,23 +249,50 @@ class Enemigo(pygame.sprite.Sprite):
         self.contador_pasos += 1
 
     def dibujar(self, cuadro):
-        pygame.draw.rect(cuadro, "Red", (self.rect.x + 5, self.rect.y - 20, 50, 30))
+        pygame.draw.rect(cuadro, "Red", (self.lados["main"].x + 8, self.lados["main"].y - 50, 75, 20))
+        pygame.draw.rect(cuadro, "Green", (self.lados["main"].x + 8, self.lados["main"].y - 50, 75 - (5 * (10-self.salud)), 20))
+        for bala in self.balas:
+            bala.draw(cuadro)
+        
 
     def detectar_colisiones(self, lista_plataformas):
         for piso in lista_plataformas:
-            if self.rect.colliderect(piso.rect):
+            if self.rect.colliderect(piso["main"]):
                 self.cambiar_direccion()
+    
+    def detectar_colisiones_bala(self, balas):
+        for bala in balas:
+            if self.rect.colliderect(bala.rect):
+                self.recibir_dano(1)  # Reducir la salud del enemigo en 1 al recibir un impacto
+                balas.remove(bala)
+
 
     def recibir_dano(self, cantidad_dano):
         self.salud -= cantidad_dano
         if self.salud <= 0:
             self.morir()
+        # self.salud -= cantidad_dano
+        # if self.salud < 0:
+        #     self.salud = 0
+        #     self.morir()
+        # Actualizar la barr
 
     def morir(self):
-        # Acciones a realizar cuando el enemigo muere
-        pass
+        self.kill()
+
 
     def update(self, pantalla, piso):
         self.animar(pantalla, "camina_" + self.direccion)
         self.mover()
         self.detectar_colisiones(piso)
+        self.detectar_colisiones_bala(bala)
+        # Actualizar balas
+        for bala in self.balas:
+            if bala.rect.colliderect(piso):
+                self.balas.remove(bala)
+            else:
+                bala.mover()
+                
+                bala.draw(pantalla)
+                bala.update()
+                
