@@ -1,0 +1,195 @@
+# import pygame
+# from archivos import *
+# from animaciones import *
+# from modo import *
+# import sys
+# import pygame,sys
+# from configuraciones import *
+# from modo import *
+# #################Funciones Movimiento##################
+# def obtener_rectangulos(principal: pygame.Rect):
+#     diccionario= {}
+#     #main - bottom- left - top- right(top parte de arriba del rect, bottom parte de abajo, right derecha left izq)
+#     diccionario["main"]= principal
+#     diccionario["bottom"]= pygame.Rect(principal.left,  principal.bottom - 10, principal.width,10)
+#     diccionario["right"]= pygame.Rect(principal.right -2, principal.top, principal.height)
+#     diccionario["left"]=  pygame.Rect(principal.left,principal.top,2,principal.height)
+#     diccionario["top"]= pygame.Rect(principal.left,principal.top, principal.width, 6)
+#     return diccionario
+
+
+# def aplicar_gravedad(pantalla, personaje_animacion, rectangulo_personaje: pygame.Rect,pisos: list): #pregunta si esta saltando y crea un piso para detener el salto
+#     global desplazamiento_y ,esta_saltando
+#     if esta_saltando:
+#         animar_personaje(pantalla, rectangulo_personaje["main"], personaje_animacion)
+        
+#         for lado in rectangulo_personaje:
+#             rectangulo_personaje[lado].y += desplazamiento_y
+
+
+
+#         if desplazamiento_y+ gravedad < limite_velocidad_caida:
+#             desplazamiento_y += gravedad #verifico si la altura me da menor al limite de altura suma
+    
+#     for plataforma in pisos:
+#         if rectangulo_personaje["bottom"].colliderect(plataforma["top"]): #si el rectangulo colisiona con el piso
+#             esta_saltando = False
+#             desplazamiento_y=0
+#             # for lado in rectangulo_personaje:
+#             rectangulo_personaje["main"].bottom= plataforma["main"].top + 5
+#             break
+#         #programar que pasaria si alguna parte del personaje hace colision con alguna parte de la plataforma o con lo q este chocando
+#         else:
+#             esta_saltando= True
+# #esta genera y mueve el eje y para saltar
+
+# def mover_personaje(rectangulo_personaje: pygame.Rect , velocidad):
+#     for lado in rectangulo_personaje:
+#         rectangulo_personaje[lado].x += velocidad
+# #el mover reemplaza el eje x
+
+# def animar_personaje(pantalla, rectangulo_personaje,accion_personaje):
+#     global contador_pasos
+
+#     largo= len(accion_personaje)
+#     if contador_pasos >= largo:
+#         contador_pasos=0
+
+#     #el contador va animando y moviendo el personaje, nos dice que secuencia es
+
+#     pantalla.blit(accion_personaje[contador_pasos],rectangulo_personaje)
+#     contador_pasos +=1 #va pasando de la imagen en movimiento 0 a la 1 a la 2 ya si sucesivamente
+
+
+
+
+
+# def actualizar_pantalla(pantalla, que_hace,lados_personaje, velocidad,plataformas): 
+#     global desplazamiento_y, esta_saltando
+
+#     pantalla.blit(fondo,(0,0))#imagen de la plataforma
+#     pantalla.blit(plataforma,(rectangulo_plataforma.x,rectangulo_plataforma.y))#paso las coord en x e y
+    
+#     match que_hace: #si lo que esta haciendo...
+#         case "Derecha": #esta a la derecha
+#             if not esta_saltando:
+#             #animar:
+#                 animar_personaje(pantalla,lados_personaje["main"],personaje_camina)
+#                 #mover
+#                 mover_personaje(lados_personaje, velocidad)
+#         case "Izquierda":
+#             if not esta_saltando:
+#                 #animar:
+#                 animar_personaje(pantalla,lados_personaje["main"],personaje_camina_izquierda)
+#                 mover_personaje(lados_personaje, velocidad*-1)
+#         case "Salta":
+#             if not esta_saltando:
+#                 esta_saltando=True
+#                 desplazamiento_y=potencia_salto
+#         case "Quieto":
+#             if not esta_saltando:
+#             #analizarlo
+#                 animar_personaje(pantalla,lados_personaje["main"], personaje_quieto)
+    
+#     aplicar_gravedad(pantalla,personaje_salta,rectangulo_personaje,plataformas)
+
+# ########################################################
+# W,H= 1900,900
+# FPS=18
+
+
+
+# pygame.init()
+# RELOJ=pygame.time.Clock()
+# PANTALLA= pygame.display.set_mode((W,H))
+# #fondo
+# fondo=pygame.image.load("ciudad.jpg")
+# fondo= pygame.transform.scale(fondo,(W,H))
+# PANTALLA.blit(fondo(0,0))
+
+# #personaje:
+# x_inicial= H/2 - 600 #donde empieza
+# y_inicial= 650
+# contador_pasos=0
+# velocidad= 10
+
+# posicion_actual_x=0
+
+# lista_animaciones=[personaje_quieto,personaje_camina,personaje_camina_izquierda,personaje_salta]
+# reescalar_imagenes(lista_animaciones,75,85)
+
+# rectangulo_personaje= personaje_camina[0].get_rect()
+# rectangulo_personaje.x= x_inicial
+# rectangulo_personaje.y= y_inicial
+
+# lados_personaje= obtener_rectangulos[rectangulo_personaje]
+# que_hace= "Quieto"
+# #SALTO:
+# gravedad= 1
+# potencia_salto= -15 #mientras mas chico sea valor mas alto va a saltar
+# limite_velocidad_caida= 15
+# esta_saltando= False
+# desplazamiento_y= 0
+
+# #DIBUJAR SUPERFICIE:
+# #piso
+# piso=pygame.Rect(0,0,W,20)
+# piso.top = rectangulo_personaje.bottom
+
+# lado_piso= obtener_rectangulos(piso)
+
+
+# #PLATAFORMA
+# plataforma= pygame.image.load("plataforma5.png.png")
+# plataforma= pygame.transform.scale(plataforma,(400,75))
+# rectangulo_plataforma= plataforma.get_rect()
+# rectangulo_plataforma.x= 500
+# rectangulo_plataforma.y=620
+# lados_plataforma= obtener_rectangulos(rectangulo_plataforma)
+# lista_plataformas= [lado_piso, lados_plataforma]
+
+
+
+
+
+# while True:
+#     RELOJ.tick(FPS)
+#     for evento in pygame.event.get():
+#         if evento.type == pygame.QUIT:
+#             pygame.quit()
+#             sys.exit(0)
+#         elif evento.type == pygame.KEYDOWN:
+#             if evento.key == pygame.K_TAB:
+#                 cambiar_modo()
+
+#     keys= pygame.key.get_pressed() #teclas presionadas
+
+#     if(keys[pygame.K_RIGHT] and rectangulo_personaje.right < W - velocidad ): #va para la derecha
+#         que_hace= "Derecha"
+#     elif (keys[pygame.K_LEFT]):
+#         que_hace ="Izquierda"
+#     elif (keys[pygame.K_UP]):
+#         que_hace ="Salta"
+#     else:
+#         que_hace="Quieto" #sino esta quieto
+    
+
+    
+
+#     actualizar_pantalla(PANTALLA, que_hace, lados_personaje, velocidad,lista_plataformas)
+#     if get_mode():
+#         pygame.draw.rect(PANTALLA,"Blue",rectangulo_personaje,2)
+#         # pygame.draw.rect(PANTALLA,"Green",piso,2)
+#         # pygame.draw.rect(PANTALLA,"Green",rectangulo_plataforma,2)
+        
+
+#         for lado in lado_piso:
+#             pygame.draw.rect(PANTALLA,"Green", lado_piso[lado],2)
+#         for lado in lado_piso:
+#             pygame.draw.rect(PANTALLA,"Green", lado_piso[lado],2)
+#         for lado in lados_plataforma:
+#             pygame.draw.rect(PANTALLA,"Yellow", lados_plataforma[lado],2)
+        
+    
+    
+#     pygame.display.update()
