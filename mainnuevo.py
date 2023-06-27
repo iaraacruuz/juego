@@ -1,3 +1,4 @@
+
 import pygame,sys
 from archivos2 import*
 from animaciones2 import *
@@ -51,11 +52,9 @@ enemigos_group.add(mi_enemigo)
 #PISO:
 piso= pygame.Rect(0,0,W,15)
 piso.top= mi_personaje.lados["main"].bottom
-
 lados_piso= obtener_rectangulos(piso)
 #PLATAFORMA:
 tamaño_plataforma=(200,100)
-# PLATAFORMA:
 plataforma_imagen = pygame.image.load("plataforma5.png.png")
 plataforma_imagen = pygame.transform.scale(plataforma_imagen, tamaño_plataforma)
 
@@ -95,14 +94,18 @@ sonido_golpe=pygame.mixer.Sound(ruta_golpe)
 #         bala.draw(PANTALLA)
 #     pygame.display.update()         
 
+# def redraw():
+
+#     # Dibuja los proyectiles
+#     for bala in mi_personaje.balas:
+#         mi_personaje.dibujar(PANTALLA)
+
+#     pygame.display.update()
 def redraw():
-
-    # Dibuja los proyectiles
     for bala in mi_personaje.balas:
-        mi_personaje.dibujar(PANTALLA)
-
+        bala.update() 
+        pygame.draw.rect(PANTALLA, (255, 0, 0), bala.rect)
     pygame.display.update()
-# bullets=[]
 
 ruta_musica= "musica.mp3"
 musica_fondo= pygame.mixer.music.load(ruta_musica)
@@ -151,11 +154,8 @@ while True:
         direccion=0
     
 
-    # for bala in mi_personaje.balas:
-    #     if len(mi_personaje.balas ) <5:
-    #         mi_personaje.balas.append(proyectiles(round( + mi_personaje.ancho//2), round(mi_personaje.y + mi_personaje.alto //2), 10, "Black", direccion))
-    #         sonido_bala.play()
-    # tanda_balas +=1 
+
+
     if tanda_balas >0:
         tanda_balas +=1
     if tanda_balas>3:
@@ -163,60 +163,46 @@ while True:
     #Contacto del rpoyectil con el villano:
 
 
-
     for bala in mi_personaje.balas:
         if len(mi_personaje.balas) < 5:
             x_bala = mi_personaje.lados["main"].x + mi_personaje.lados["main"].width // 2
-            mi_personaje.balas.append(proyectiles(x_bala, mi_personaje.lados["main"].y + mi_personaje.alto // 2, 10, "Black", direccion))
+            mi_personaje.balas.append(proyectiles(x_bala, mi_personaje.lados["main"].y + mi_personaje.alto // 2, 10 , "Black", direccion))
             sonido_bala.play()
-        tanda_balas += 1
-    # for bala in :
-    #     if bala.rect.colliderect(mi_enemigo.rect):
-    #             sonido_golpe.play()
-    #             mi_enemigo.balas.remove(bala)
-    #             mi_enemigo.salud -= 5
-    #     if bala.x < W and bala.x > 0:
-    #         # Mueve la bala si está dentro de la ventana
-    #             bala.x += bala.velocidad
-    #     else:
-    #         # Elimina la bala si está fuera de la ventana
-    #             mi_personaje.balas.remove(bala)
-    # for bala in mi_personaje.balas:
-    #     if bala.rect.colliderect(mi_enemigo.rect):
-    #         sonido_golpe.play()
-    #         mi_enemigo.recibir_dano(5)  # Restar 5 puntos de vida al enemigo
-    #         mi_personaje.balas.remove(bala)
-    #     if bala.x < W and bala.x > 0:
-    #         # Mueve la bala si está dentro de la ventana
-    #         bala.x += bala.velocidad
-    #     else:
-    #         # Elimina la bala si está fuera de la ventana
-    #         mi_personaje.balas.remove(bala)
+        tanda_balas += 1 
 
-        for bala in mi_personaje.balas:
-            if bala.rect.colliderect(mi_enemigo.rect):
-                sonido_golpe.play()
-                mi_enemigo.recibir_dano(3)  # Restar 5 puntos de vida al enemigo
-                mi_personaje.balas.remove(bala)
-                
-            if bala.x < W and bala.x > 0:
+
+   
+    for bala in mi_personaje.balas:
+        if bala.rect.colliderect(mi_enemigo.rect):
+            sonido_golpe.play()
+            mi_enemigo.salud -= 5
+            mi_personaje.balas.remove(bala)
+  
+        else:
+            bala.update()  # Actualiza la posición de la bala
+
+        if bala.x < W and bala.x > 0:
             # Mueve la bala si está dentro de la ventana
                 bala.x += bala.velocidad
-            else:
+        else:
             # Elimina la bala si está fuera de la ventana
                 mi_personaje.balas.remove(bala)
 
+    if mi_enemigo.salud <= 0:
+                enemigos_group.remove(mi_enemigo)
+                mi_enemigo.morir()
+    
+    mi_enemigo.detectar_colisiones_bala(mi_enemigo.balas)
+  
+    
     pygame.display.flip()
     if mi_enemigo.rect.left <= limite_izquierdo or mi_enemigo.rect.right >= limite_derecho:
         mi_enemigo.cambiar_direccion()
     
 
-    # mi_personaje.update(PANTALLA, lista_plataformas)
-
-    # # Actualizar enemigo
-    # mi_enemigo.update(PANTALLA, lista_plataformas, mi_personaje.balas)
 
     actualizar_pantalla(PANTALLA, mi_personaje, fondo, lista_plataformas, plataforma_imagen, plataforma_imagen_2)
+
     for lado in lados_piso:
     
         pygame.draw.rect(PANTALLA,"Orange",lados_piso[lado],3)
@@ -226,27 +212,29 @@ while True:
     for lado in lados_plataforma2:
         pygame.draw.rect(PANTALLA, "Green", lados_plataforma2[lado], 3)
     
+    pygame.draw.rect(PANTALLA, "Red", plataforma,3)
+    pygame.draw.rect(PANTALLA,"Green", plataforma2, 3)
+    
     # Dibujar y actualizar enemigo
     enemigos_group.update(PANTALLA, lista_plataformas, mi_enemigo.balas )
-
+ 
     
     mi_personaje.dibujar(PANTALLA)
     mi_enemigo.dibujar(PANTALLA)
     sprites.update()
     sprites.draw(PANTALLA)
+    
+    
     # sprites = pygame.sprite.Group()
     # sprites = pygame.sprite.Group()
     
-
+    mi_personaje.detectar_colisiones( lista_plataformas)
     
-    pygame.draw.rect(PANTALLA, "Red", plataforma,3)
-    pygame.draw.rect(PANTALLA,"Green", plataforma2, 3)
+    
+   
 
-    # redraw()
-    # for bala in mi_personaje.balas:
-    #     bala.draw(PANTALLA)
     redraw()
+ 
 
     pygame.display.update()
-
 

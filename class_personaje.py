@@ -40,7 +40,7 @@ class Personaje:
         #enemigo:
         self.enemigo = None  # Referencia al enemigo
         self.danio_bala = 2  # Daño que causa la bala al enemigo
-
+        
     
     def reescalar_animaciones(self):
         for clave in self.animaciones:
@@ -105,7 +105,7 @@ class Personaje:
         self.aplicar_gravedad(pantalla,piso)
 
    
-
+    
 
     def aplicar_gravedad(self,pantalla,lista_plataformas):
         if self.esta_saltando:
@@ -138,7 +138,6 @@ class Personaje:
             elif self.direccion == "izquierda":
                 nueva_bala.velocidad = -abs(nueva_bala.velocidad)  # Velocidad negativa para lanzar hacia la izquierda
 
-            
 
 class proyectiles(object):
     def __init__(self,  x, y, radius, color,facing):
@@ -153,7 +152,7 @@ class proyectiles(object):
 
     # def draw(self, win):
     #         pygame.draw.circle(win, self.color, (self.x, self.y), self.radius)
-        # pygame.draw.rect(win, "Blue", self.rect, 2)
+    #         pygame.draw.rect(win, "Blue", self.rect, 2)
     def draw(self, cuadro,bala):
             pygame.draw.circle(cuadro, self.color, (self.x, self.y), self.radius)
         
@@ -269,9 +268,10 @@ class Enemigo(pygame.sprite.Sprite):
 
 
     def recibir_dano(self, cantidad_dano):
-        self.salud -= cantidad_dano
         if self.salud < 0:
             self.morir()
+        else:
+            self.salud -= cantidad_dano
 
 
     def morir(self):
@@ -287,12 +287,18 @@ class Enemigo(pygame.sprite.Sprite):
         for bala in self.balas:
             if bala.rect.colliderect(lista_plataformas):
                 self.balas.remove(bala)
+            # else:
+            #     bala.mover()
+                
+            #     bala.draw(pantalla)
+            #     bala.update()
+
+            if bala.rect.colliderect(self.rect):
+                    self.recibir_dano(1)  # Restar 1 punto de salud al enemigo al recibir un impacto de una bala
+                    self.balas.remove(bala)
+    
             else:
                 bala.mover()
                 
                 bala.draw(pantalla)
                 bala.update()
-
-                if bala.rect.colliderect(self.rect):
-                    self.recibir_dano(1)  # Restar 1 punto de salud al enemigo al recibir un impacto de una bala
-                    self.balas.remove(bala)
