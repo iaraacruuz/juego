@@ -40,14 +40,18 @@ class Personaje:
         #enemigo:
         self.enemigo = None  # Referencia al enemigo
         self.danio_bala = 2  # Daño que causa la bala al enemigo
+        #RETANGULO:
+        self.rect = pygame.Rect(posicion_incial[0], posicion_incial[1], self.ancho, self.alto)
+
         
-    
     def reescalar_animaciones(self):
         for clave in self.animaciones:
             reescalar_imagenes(self.animaciones[clave],(self.ancho,self.alto))
 
 
-        
+    def actualizar_rect(self):
+        self.rect.x = self.lados["main"].x
+        self.rect.y = self.lados["main"].y
 
     def mover(self,velocidad):
         for lado in self.lados:
@@ -101,6 +105,7 @@ class Personaje:
             case "quieto":
                 if not self.esta_saltando:
                     self.animar(pantalla,"quieto")
+        
 
         self.aplicar_gravedad(pantalla,piso)
 
@@ -150,9 +155,6 @@ class proyectiles(object):
             self.rect = pygame.Rect(x - radius, y - radius, radius * 2, radius * 2)
         
 
-    # def draw(self, win):
-    #         pygame.draw.circle(win, self.color, (self.x, self.y), self.radius)
-    #         pygame.draw.rect(win, "Blue", self.rect, 2)
     def draw(self, cuadro,bala):
             pygame.draw.circle(cuadro, self.color, (self.x, self.y), self.radius)
         
@@ -166,26 +168,9 @@ class proyectiles(object):
     def mover(self):
         self.x += self.velocidad
         self.rect.x = self.x - self.radius
+        
     def update(self):
         self.mover()
-
-    # def draw(self, pantalla,balas):
-    #     for bala in balas:
-    #         bala.draw(pantalla)
-    #         self.zona_impacto= (self.x - self.radius,self.y - self.radius,self.radius *2, self.radius*2)
-
-    # def draw(self, win):
-    #     # pygame.draw.circle(win, self.color, (self.x, self.y), self.radius)
-    #     self.zona_impacto= (self.x - self.radius,self.y - self.radius,self.radius *2, self.radius*2)
-    #     pygame.draw.circle(win, self.color, (self.x, self.y), self.radius)
-    #     #en caso de querer visualizar la zona de impacto:
-    #     pygame.draw.rect(win,"Blue", self.zona_impacto,2)
-    
-    # def impactar(self,alguien):
-    #     if alguien.salud >0:
-    #         alguien.salud -=1
-    #     else:
-    #         del(alguien) #con del se puede eliminar al personaje
 
 
 
@@ -221,7 +206,7 @@ class Enemigo(pygame.sprite.Sprite):
         self.salud = self.salud_maxima
         #balas:
         self.balas= []
-
+        
     def reescalar_animaciones(self):
         for clave in self.animaciones:
             reescalar_imagenes(self.animaciones[clave], (self.ancho, self.alto))
@@ -253,19 +238,23 @@ class Enemigo(pygame.sprite.Sprite):
         pygame.draw.rect(cuadro, "Green", (self.lados["main"].x + 8, self.lados["main"].y - 50, 75 - (5 * (10-self.salud)), 20))
         for bala in self.balas:
             bala.draw(cuadro)
-        
+  
 
     def detectar_colisiones(self, lista_plataformas):
         for piso in lista_plataformas:
             if self.rect.colliderect(piso["main"]):
                 self.cambiar_direccion()
     
-    def detectar_colisiones_bala(self, balas):
+    def detectar_colisiones_bala(self, balas,cantidad_dano):
         for bala in balas:
             if self.rect.colliderect(bala.rect):
                 self.recibir_dano(1)  # Reducir la salud del enemigo en 1 al recibir un impacto
                 balas.remove(bala)
-
+            elif self.salud <= 0:
+                self.morir()
+            else:
+                self.salud -= cantidad_dano
+    
 
     def recibir_dano(self, cantidad_dano):
         if self.salud < 0:
@@ -276,29 +265,24 @@ class Enemigo(pygame.sprite.Sprite):
 
     def morir(self):
             self.kill()
+            
 
 
-    def update(self, pantalla, lista_plataformas,balas):
+    def update(self, pantalla, lista_plataformas,balas,cantidad_dano):
         self.animar(pantalla, "camina_" + self.direccion)
         self.mover()
         self.detectar_colisiones(lista_plataformas)
-        self.detectar_colisiones_bala(balas)
+        self.detectar_colisiones_bala(balas,cantidad_dano)
         # Actualizar balas
         for bala in self.balas:
             if bala.rect.colliderect(lista_plataformas):
                 self.balas.remove(bala)
-            # else:
-            #     bala.mover()
-                
-            #     bala.draw(pantalla)
-            #     bala.update()
-
-            if bala.rect.colliderect(self.rect):
-                    self.recibir_dano(1)  # Restar 1 punto de salud al enemigo al recibir un impacto de una bala
-                    self.balas.remove(bala)
-    
             else:
                 bala.mover()
                 
                 bala.draw(pantalla)
                 bala.update()
+
+            if bala.rect.colliderect(self.rect):
+                    self.recibir_dano(1)  # Restar 1 punto de salud al enemigo al recibir un impacto de una bala
+                    self.balas.remove(bala)
