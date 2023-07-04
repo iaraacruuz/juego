@@ -4,16 +4,21 @@ from archivos2 import*
 from animaciones2 import *
 from class_personaje import *
 from modo2 import *
-import turtle
-from class_item import * 
+from class_item import *
 
-
-def actualizar_pantalla(pantalla, un_personaje: Personaje, fondo, lista_plataformas, plataforma_imagen,plataforma_imagen_2):
+def actualizar_pantalla(pantalla, un_personaje: Personaje, fondo, lista_plataformas, plataforma_imagen,plataforma_imagen_2, my_item):
     pantalla.blit(fondo, (0, 0))
     pantalla.blit(plataforma_imagen, plataforma)
     pantalla.blit(plataforma_imagen_2, plataforma2)
     un_personaje.update(pantalla, lista_plataformas)
+    if my_item:  # Check if the item exists before drawing
+        my_item.draw(pantalla)
 
+# def actualizar_pantalla(pantalla, un_personaje: Personaje, fondo, lista_plataformas, plataforma_imagen,plataforma_imagen_2):
+#     pantalla.blit(fondo, (0, 0))
+#     pantalla.blit(plataforma_imagen, plataforma)
+#     pantalla.blit(plataforma_imagen_2, plataforma2)
+#     un_personaje.update(PANTALLA, lista_plataformas)
 
 #PANTALLA:
 W, H = 1200, 600
@@ -28,16 +33,13 @@ fondo = pygame.transform.scale(fondo, TAMAÑO)
 
 pygame.init() 
 
-#TEXTO:
-# texto= turtle.Turtle()
-# texto.speed(0)
-# texto.color("Black")
-# texto.penup()
-# texto.hideturtle()
-# texto.goto(0,260)
-# texto.write("Puntaje:0          high score: 0", align= "center", font= ("Courier",24, "normal"))
 
+# ITEMS:
+item_image = pygame.image.load("15.png")  # Replace with the actual image path
+item_image = pygame.transform.scale(item_image, (50, 50))  # Replace the size with your desired dimensions
 
+item_position = (500, 400)  # Set the initial position of the item
+my_item = Item(item_image, item_position[0], item_position[1])
 
 #PERSONAJE:
 posicion_inicial= (H/2 - 300,500)
@@ -100,23 +102,12 @@ sonido_golpe=pygame.mixer.Sound(ruta_golpe)
 
 balas=[]
 
-# def redraw():
-#     for bala in mi_personaje.balas:
-#         pygame.draw.rect(PANTALLA, (255, 0, 0), bala.rect)
-#         bala.update()
-#     items_group.update()
-#     items_group.draw(PANTALLA)
-
-#     pygame.display.update()
 def redraw():
     for bala in mi_personaje.balas:
         pygame.draw.rect(PANTALLA, (255, 0, 0), bala.rect)
         bala.update()
-    items_group.update(mi_personaje, items_group)  
-    items_group.draw(PANTALLA)
 
     pygame.display.update()
-
 # ruta_musica= "musica.mp3"
 # musica_fondo= pygame.mixer.music.load(ruta_musica)
 
@@ -126,19 +117,12 @@ limite_izquierdo = 0
 limite_derecho = W - mi_enemigo.lados["main"].width
 if tanda_balas == 0:
     tanda_balas = 1
+#########################
+# player_group = pygame.sprite.Group()
+# item_group = pygame.sprite.Group()
 
-##########################
-items_group = pygame.sprite.Group()
-
-# Antes de entrar al bucle principal del juego
-# for _ in range(5):
-#     item = Item((300, 500), (40, 40), "14.png", 10)
-#     # item.update_posicion((300, 500))  # Agregar esta línea para actualizar el rectángulo del item
-#     items_group.add(item)
-for _ in range(5):
-    item = Item((random.randint(100, 1000), random.randint(100, 500)), (40, 40), "14.png", 10)
-    items_group.add(item)
-
+# player_group.add(mi_personaje)
+# item_group.add(my_item)
 while True:
     RELOJ.tick(FPS)
 
@@ -155,7 +139,7 @@ while True:
           
     
 
-    # Item.detectar_colision_items(mi_personaje, Item.lista_items)
+    
 
     keys = pygame.key.get_pressed() # Teclas presionadas
 
@@ -179,7 +163,7 @@ while True:
     
 
 
-    
+
     if tanda_balas >0:
         tanda_balas +=1
     if tanda_balas>3:
@@ -219,11 +203,16 @@ while True:
 
     if mi_personaje.rect.colliderect(mi_enemigo.rect):
         mi_personaje.salud -= 1
-    
+
     mi_enemigo.detectar_colisiones_bala(mi_enemigo.balas,1)
-    
-  
-    PANTALLA.blit(fondo, (0, 0))
+
+            # Verificar colisión con el ítem
+    if my_item and my_item.check_collision(mi_personaje.rect):
+        mi_personaje.desplazamiento_X = 0
+        mi_personaje.desplazamiento_y = 0
+        print("Item atrapado") 
+        my_item = None
+    # PANTALLA.blit(fondo, (0, 0))
     
 
     pygame.display.flip()
@@ -231,22 +220,15 @@ while True:
         mi_enemigo.cambiar_direccion()
     
 
-   
-    for item in items_group:
-        if mi_personaje.rect.colliderect(item.rect):
-            # Item collision: Add points, remove the item
-            # item.update(mi_personaje, items_group)
-            # mi_personaje.puntaje += item.valor_puntaje
-            item.colision_con_personaje(mi_personaje)
-            items_group.remove(item)
-            
+    
 
-    # Item.dibujar_y_actualizar_items(PANTALLA, Item.lista_items)
-    actualizar_pantalla(PANTALLA, mi_personaje, fondo, lista_plataformas, plataforma_imagen, plataforma_imagen_2)
+    actualizar_pantalla(PANTALLA, mi_personaje, fondo, lista_plataformas, plataforma_imagen, plataforma_imagen_2,my_item)
      # Dibujar y actualizar enemigo
     enemigos_group.update(PANTALLA, lista_plataformas, mi_enemigo.balas,1)
-    Item.dibujar_y_actualizar_items(PANTALLA, Item.lista_items)
+
+
     
+    # PANTALLA.blit(my_item.image, my_item.rect)
     mi_personaje.dibujar(PANTALLA)
     mi_enemigo.dibujar(PANTALLA)
  
@@ -262,12 +244,10 @@ while True:
     
     pygame.draw.rect(PANTALLA, "Red", plataforma,3)
     pygame.draw.rect(PANTALLA,"Green", plataforma2, 3)
-    pygame.draw.rect(PANTALLA, "Red", mi_enemigo.rect, 3)
-
+    
    
     for bala in mi_personaje.balas:
         bala.update()
-
     redraw()
    
  

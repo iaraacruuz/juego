@@ -52,6 +52,7 @@ class Personaje:
     def actualizar_rect(self):
         self.rect.x = self.lados["main"].x
         self.rect.y = self.lados["main"].y
+        
 
     def mover(self,velocidad):
         for lado in self.lados:
@@ -76,6 +77,14 @@ class Personaje:
 
     def detectar_colisiones(self, lista_plataformas):
         for piso in lista_plataformas:
+            if self.desplazamiento_y >= 0 and self.lados["bottom"].colliderect(piso["main"]):
+                self.lados["main"].bottom = piso["main"].top
+                self.desplazamiento_y = 0
+                self.esta_saltando = False
+            # Verificar si el personaje está por debajo de la plataforma
+            elif self.desplazamiento_y < 0 and self.lados["top"].colliderect(piso["main"]):
+                self.lados["main"].top = piso["main"].bottom
+                self.desplazamiento_y = 0
             if self.lados["main"].colliderect(piso["main"]):
                 if self.que_hace == "derecha":
                     self.lados["main"].right = piso["main"].left
@@ -89,6 +98,15 @@ class Personaje:
                     break
 
     def update(self,pantalla,piso):
+        # self.actualizar_rect()
+        # # Detección de colisiones
+        # self.detectar_colisiones(piso)
+        self.rect.x += self.desplazamiento_X
+        
+        self.rect.y += self.desplazamiento_y
+
+
+
         match self.que_hace:
             case "derecha":
                 if not self.esta_saltando:
@@ -106,6 +124,10 @@ class Personaje:
                 if not self.esta_saltando:
                     self.animar(pantalla,"quieto")
         
+        # self.detectar_colisiones(piso)
+
+        # self.actualizar_rect()
+
 
         self.aplicar_gravedad(pantalla,piso)
 
@@ -119,14 +141,16 @@ class Personaje:
                 self.lados[lado].y += self.desplazamiento_y
             if self.desplazamiento_y + self.gravedad < self.limite_velocidad_caida:
                 self.desplazamiento_y += self.gravedad
+
         for piso in lista_plataformas:
-            if self.lados["bottom"].colliderect(piso["top"]):
+            if self.lados["bottom"].colliderect(piso["main"]):
                 self.desplazamiento_y =0
                 self.esta_saltando= False
-                self.lados["main"].bottom= piso["main"].top
+                self.lados["main"].bottom = piso["main"].top
                 break
             else:
                 self.esta_saltando = True
+
 
     def lanzar_proyectil(self):
         if len(self.balas) < 10:
