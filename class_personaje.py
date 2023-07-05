@@ -4,10 +4,12 @@ import pygame
 from archivos2 import *
 from animaciones2 import*
 import random
+from class_item import * 
 
 # from mainnuevo import *
-class Personaje:
-    def __init__(self,tamaño,animaciones,posicion_incial,velocidad):
+class Personaje():
+    def __init__(self,tamaño,animaciones,posicion_inicial,velocidad):
+        
         #CONFECCION:
         self.ancho= tamaño[0]
         self.alto=tamaño[1]
@@ -24,8 +26,8 @@ class Personaje:
         self.reescalar_animaciones()
         #RECTANGULOS:
         rectangulo= self.animaciones["camina_derecha"][0].get_rect()
-        rectangulo.x= posicion_incial[0]
-        rectangulo.y= posicion_incial[1]
+        rectangulo.x= posicion_inicial[0]
+        rectangulo.y= posicion_inicial[1]
         self.lados= obtener_rectangulos(rectangulo)
         self.velocidad = velocidad
         #MOVIMIENTO:
@@ -41,9 +43,11 @@ class Personaje:
         self.enemigo = None  # Referencia al enemigo
         self.danio_bala = 2  # Daño que causa la bala al enemigo
         #RETANGULO:
-        self.rect = pygame.Rect(posicion_incial[0], posicion_incial[1], self.ancho, self.alto)
+        self.rect = pygame.Rect(posicion_inicial[0], posicion_inicial[1], self.ancho, self.alto)
 
-        
+    def check_collision_with_item(self, item):
+        return pygame.sprite.collide_rect(self, item)
+    
     def reescalar_animaciones(self):
         for clave in self.animaciones:
             reescalar_imagenes(self.animaciones[clave],(self.ancho,self.alto))

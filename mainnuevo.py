@@ -4,21 +4,24 @@ from archivos2 import*
 from animaciones2 import *
 from class_personaje import *
 from modo2 import *
-from class_item import *
+from class_item import Item
+from class_plataforma import * 
 
-def actualizar_pantalla(pantalla, un_personaje: Personaje, fondo, lista_plataformas, plataforma_imagen,plataforma_imagen_2, my_item):
+def actualizar_pantalla(pantalla, un_personaje: Personaje, fondo, lista_plataformas, plataforma_imagen,plataforma_imagen_2, item):
     pantalla.blit(fondo, (0, 0))
     pantalla.blit(plataforma_imagen, plataforma)
     pantalla.blit(plataforma_imagen_2, plataforma2)
     un_personaje.update(pantalla, lista_plataformas)
-    if my_item:  # Check if the item exists before drawing
-        my_item.draw(pantalla)
+    if item:  # Check if the item exists before drawing
+        item.draw(pantalla)
 
-# def actualizar_pantalla(pantalla, un_personaje: Personaje, fondo, lista_plataformas, plataforma_imagen,plataforma_imagen_2):
+# def actualizar_pantalla(pantalla, un_personaje: Personaje, fondo, plataformas_group,item):
 #     pantalla.blit(fondo, (0, 0))
-#     pantalla.blit(plataforma_imagen, plataforma)
-#     pantalla.blit(plataforma_imagen_2, plataforma2)
-#     un_personaje.update(PANTALLA, lista_plataformas)
+#     plataformas_group.draw(pantalla)
+#     un_personaje.update(pantalla, plataformas_group)
+#     if item:
+#         item.draw(pantalla)
+
 
 #PANTALLA:
 W, H = 1200, 600
@@ -35,13 +38,15 @@ pygame.init()
 
 
 # ITEMS:
+items_group = pygame.sprite.Group()
 item_image = pygame.image.load("15.png")  # Replace with the actual image path
 item_image = pygame.transform.scale(item_image, (50, 50))  # Replace the size with your desired dimensions
 
 item_position = (500, 400)  # Set the initial position of the item
-my_item = Item(item_image, item_position[0], item_position[1])
-
+item = Item(item_image, item_position[0], item_position[1])
+items_group.add(item)
 #PERSONAJE:
+
 posicion_inicial= (H/2 - 300,500)
 tamaño=(75,85)
 diccionario_animaciones={}
@@ -86,6 +91,25 @@ lados_plataforma2 = obtener_rectangulos(plataforma2)
 
 lista_plataformas= [lados_piso,lados_plataforma, lados_plataforma2]
 
+#############################################################################
+# tamaño_plataforma = (200, 100)
+# tamaño_plataforma2 = (250, 100)
+
+# plataforma_imagen_1 = pygame.image.load("plataforma5.png.png")
+# plataforma_imagen_1 = pygame.transform.scale(plataforma_imagen_1, tamaño_plataforma)
+
+# plataforma_imagen_2 = pygame.image.load("plataforma5.png.png")
+# plataforma_imagen_2 = pygame.transform.scale(plataforma_imagen_2, tamaño_plataforma2)
+
+# # Create instances of 'Plataforma' directly and add them to the group:
+# plataforma1 = Plataforma(plataforma_imagen_1, 400, 460, tamaño_plataforma[0], tamaño_plataforma[1])
+# plataforma2 = Plataforma(plataforma_imagen_2, 600, 400, tamaño_plataforma2[0], tamaño_plataforma2[1])
+
+# # Create the platform group and add the platforms to it
+# plataformas_group = pygame.sprite.Group()
+# plataformas_group.add(plataforma1)
+# plataformas_group.add(plataforma2)
+####################################################################################
 
 #LIMITES:
 limite_izquierdo = 0
@@ -123,6 +147,8 @@ if tanda_balas == 0:
 
 # player_group.add(mi_personaje)
 # item_group.add(my_item)
+#######################
+
 while True:
     RELOJ.tick(FPS)
 
@@ -205,39 +231,66 @@ while True:
         mi_personaje.salud -= 1
 
     mi_enemigo.detectar_colisiones_bala(mi_enemigo.balas,1)
-
-            # Verificar colisión con el ítem
-    if my_item and my_item.check_collision(mi_personaje.rect):
-        mi_personaje.desplazamiento_X = 0
-        mi_personaje.desplazamiento_y = 0
-        print("Item atrapado") 
-        my_item = None
+    
+    
+    #         # Verificar colisión con el ítem
+    # if my_item.check_collision(mi_personaje):
+    #     mi_personaje.desplazamiento_X = 0
+    #     mi_personaje.desplazamiento_y = 0
+    #     print("Item atrapado") 
+    #     my_item = None
     # PANTALLA.blit(fondo, (0, 0))
     
+    # if mi_personaje.check_collision_with_item(item):
+    #     print("Character collided with the item!")
+    #     item = None
+    # if pygame.sprite.spritecollide(mi_personaje, items_group, True):
+    #     print("Character collided with the item!")
+    #     item = None
 
+    mi_personaje.rect.x += mi_personaje.desplazamiento_X
+    mi_personaje.rect.y += mi_personaje.desplazamiento_y
+    # Check for collisions with the item
+    if item and  mi_personaje.rect.colliderect(item.rect):
+        mi_personaje.desplazamiento_X = 0
+        mi_personaje.desplazamiento_y = 0
+        print("hola")
+        mi_personaje.salud += 1
+        item.kill  # Remove the item from the sprite group
+        item = None
+        # mi_personaje.rect.y = item.rect.y - mi_personaje.rect.height
+
+    items_group.update()
     pygame.display.flip()
     if mi_enemigo.rect.left <= limite_izquierdo or mi_enemigo.rect.right >= limite_derecho:
         mi_enemigo.cambiar_direccion()
     
 
-    
+    # plataformas_group.update(PANTALLA)
 
-    actualizar_pantalla(PANTALLA, mi_personaje, fondo, lista_plataformas, plataforma_imagen, plataforma_imagen_2,my_item)
+    print(item.rect)
+    print(mi_personaje.rect)
+    actualizar_pantalla(PANTALLA, mi_personaje, fondo, lista_plataformas, plataforma_imagen, plataforma_imagen_2,item)
      # Dibujar y actualizar enemigo
     enemigos_group.update(PANTALLA, lista_plataformas, mi_enemigo.balas,1)
 
 
-    
+    mi_personaje.update(PANTALLA, lista_plataformas)  # Update character position and animation
+    # actualizar_pantalla(PANTALLA, mi_personaje, fondo, plataformas_group, item)
     # PANTALLA.blit(my_item.image, my_item.rect)
     mi_personaje.dibujar(PANTALLA)
     mi_enemigo.dibujar(PANTALLA)
- 
+
+
+    item.draw(PANTALLA)
+
     for lado in lados_piso:
     
         pygame.draw.rect(PANTALLA,"Orange",lados_piso[lado],3)
     for lado in mi_personaje.lados:
             pygame.draw.rect(PANTALLA,"Blue",mi_personaje.lados[lado],3)
     
+    # plataformas_group.draw(PANTALLA)
     for lado in lados_plataforma2:
         pygame.draw.rect(PANTALLA, "Green", lados_plataforma2[lado], 3)
     

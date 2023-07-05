@@ -1,8 +1,10 @@
 import pygame
-from class_personaje import *
-from pygame.rect import Rect
+import random
+# from class_personaje import *
+# from pygame.rect import Rect
 class Item(pygame.sprite.Sprite):
-    def __init__(self, image, x,y):
+    def __init__(self, image, x, y):
+        super().__init__()
         self.image = image
         self.rect = self.image.get_rect()
         self.rect.x = x
@@ -10,10 +12,11 @@ class Item(pygame.sprite.Sprite):
     def draw(self, surface):
         surface.blit(self.image, self.rect)
 
-    def check_collision(self,mi_personaje: Personaje): 
+   
+    # def check_collision(self,mi_personaje: Personaje): 
 
-        return self.rect.colliderect(mi_personaje)
-
+    #     return self.rect.colliderect(mi_personaje)
+    
     
     def obtener_rectangulos(self, principal: pygame.Rect) -> dict:
         diccionario = {}
