@@ -7,20 +7,14 @@ from modo2 import *
 from class_item import Item
 from class_plataforma import * 
 
-def actualizar_pantalla(pantalla, un_personaje: Personaje, fondo, lista_plataformas, plataforma_imagen,plataforma_imagen_2, item):
+def actualizar_pantalla(pantalla, un_personaje: Personaje, fondo, lista_plataformas, plataforma_imagen,plataforma_imagen_2, items_group):
     pantalla.blit(fondo, (0, 0))
     pantalla.blit(plataforma_imagen, plataforma)
     pantalla.blit(plataforma_imagen_2, plataforma2)
     un_personaje.update(pantalla, lista_plataformas)
-    if item:  # Check if the item exists before drawing
-        item.draw(pantalla)
-
-# def actualizar_pantalla(pantalla, un_personaje: Personaje, fondo, plataformas_group,item):
-#     pantalla.blit(fondo, (0, 0))
-#     plataformas_group.draw(pantalla)
-#     un_personaje.update(pantalla, plataformas_group)
-#     if item:
-#         item.draw(pantalla)
+      # Check if the item exists before drawing
+    
+    items_group.draw(pantalla)
 
 
 #PANTALLA:
@@ -73,43 +67,42 @@ enemigos_group.add(mi_enemigo)
 piso= pygame.Rect(0,0,W,15)
 piso.top= mi_personaje.lados["main"].bottom
 lados_piso= obtener_rectangulos(piso)
-#PLATAFORMA:
-tamaño_plataforma=(200,100)
+# #PLATAFORMA:
+# tamaño_plataforma=(200,100)
+# plataforma_imagen = pygame.image.load("plataforma5.png.png")
+# plataforma_imagen = pygame.transform.scale(plataforma_imagen, tamaño_plataforma)
+
+# plataforma = pygame.Rect(400, 460, tamaño_plataforma[0], tamaño_plataforma[1])  # Posición (300, 400) y tamaño personalizado
+# lados_plataforma = obtener_rectangulos(plataforma)
+
+
+# tamaño_plataforma2 = (250, 100)
+# plataforma_imagen_2 = pygame.image.load("plataforma5.png.png")
+# plataforma_imagen_2 = pygame.transform.scale(plataforma_imagen_2, tamaño_plataforma2)
+# plataforma2 = pygame.Rect(600, 400, tamaño_plataforma2[0], tamaño_plataforma2[1])
+# lados_plataforma2 = obtener_rectangulos(plataforma2)
+
+
+# lista_plataformas= [lados_piso,lados_plataforma, lados_plataforma2]
+
+#############################################################################
+tamaño_plataforma = (200, 100)
+tamaño_plataforma2 = (250, 100)
+
 plataforma_imagen = pygame.image.load("plataforma5.png.png")
 plataforma_imagen = pygame.transform.scale(plataforma_imagen, tamaño_plataforma)
 
-plataforma = pygame.Rect(400, 460, tamaño_plataforma[0], tamaño_plataforma[1])  # Posición (300, 400) y tamaño personalizado
-lados_plataforma = obtener_rectangulos(plataforma)
+plataforma = Plataforma(plataforma_imagen, 400, 460, tamaño_plataforma[0], tamaño_plataforma[1])
 
-
-tamaño_plataforma2 = (250, 100)
 plataforma_imagen_2 = pygame.image.load("plataforma5.png.png")
 plataforma_imagen_2 = pygame.transform.scale(plataforma_imagen_2, tamaño_plataforma2)
-plataforma2 = pygame.Rect(600, 400, tamaño_plataforma2[0], tamaño_plataforma2[1])
-lados_plataforma2 = obtener_rectangulos(plataforma2)
 
+plataforma2 = Plataforma(plataforma_imagen_2, 600, 400, tamaño_plataforma2[0], tamaño_plataforma2[1])
+lados_piso = plataforma.obtener_lados()
+lados_plataforma = plataforma.obtener_lados()
+lados_plataforma2 = plataforma2.obtener_lados()
+lista_plataformas = [lados_piso, lados_plataforma, lados_plataforma2]
 
-lista_plataformas= [lados_piso,lados_plataforma, lados_plataforma2]
-
-#############################################################################
-# tamaño_plataforma = (200, 100)
-# tamaño_plataforma2 = (250, 100)
-
-# plataforma_imagen_1 = pygame.image.load("plataforma5.png.png")
-# plataforma_imagen_1 = pygame.transform.scale(plataforma_imagen_1, tamaño_plataforma)
-
-# plataforma_imagen_2 = pygame.image.load("plataforma5.png.png")
-# plataforma_imagen_2 = pygame.transform.scale(plataforma_imagen_2, tamaño_plataforma2)
-
-# # Create instances of 'Plataforma' directly and add them to the group:
-# plataforma1 = Plataforma(plataforma_imagen_1, 400, 460, tamaño_plataforma[0], tamaño_plataforma[1])
-# plataforma2 = Plataforma(plataforma_imagen_2, 600, 400, tamaño_plataforma2[0], tamaño_plataforma2[1])
-
-# # Create the platform group and add the platforms to it
-# plataformas_group = pygame.sprite.Group()
-# plataformas_group.add(plataforma1)
-# plataformas_group.add(plataforma2)
-####################################################################################
 
 #LIMITES:
 limite_izquierdo = 0
@@ -233,59 +226,37 @@ while True:
     mi_enemigo.detectar_colisiones_bala(mi_enemigo.balas,1)
     
     
-    #         # Verificar colisión con el ítem
-    # if my_item.check_collision(mi_personaje):
-    #     mi_personaje.desplazamiento_X = 0
-    #     mi_personaje.desplazamiento_y = 0
-    #     print("Item atrapado") 
-    #     my_item = None
-    # PANTALLA.blit(fondo, (0, 0))
-    
-    # if mi_personaje.check_collision_with_item(item):
-    #     print("Character collided with the item!")
-    #     item = None
-    # if pygame.sprite.spritecollide(mi_personaje, items_group, True):
-    #     print("Character collided with the item!")
-    #     item = None
 
-    mi_personaje.rect.x += mi_personaje.desplazamiento_X
-    mi_personaje.rect.y += mi_personaje.desplazamiento_y
-    # Check for collisions with the item
-    if item and  mi_personaje.rect.colliderect(item.rect):
-        mi_personaje.desplazamiento_X = 0
-        mi_personaje.desplazamiento_y = 0
-        print("hola")
-        mi_personaje.salud += 1
-        item.kill  # Remove the item from the sprite group
-        item = None
-        # mi_personaje.rect.y = item.rect.y - mi_personaje.rect.height
 
-    items_group.update()
-    pygame.display.flip()
+    items_group.update(lista_plataformas)
+ 
+    if mi_personaje.rect.colliderect(item.rect):
+        item.check_collision(mi_personaje)
+
     if mi_enemigo.rect.left <= limite_izquierdo or mi_enemigo.rect.right >= limite_derecho:
         mi_enemigo.cambiar_direccion()
     
 
-    # plataformas_group.update(PANTALLA)
-
-    print(item.rect)
     print(mi_personaje.rect)
+    items_group.draw(PANTALLA)
+    mi_personaje.update(PANTALLA, lista_plataformas) 
+    mi_personaje.aplicar_gravedad(PANTALLA, lista_plataformas)
     actualizar_pantalla(PANTALLA, mi_personaje, fondo, lista_plataformas, plataforma_imagen, plataforma_imagen_2,item)
      # Dibujar y actualizar enemigo
     enemigos_group.update(PANTALLA, lista_plataformas, mi_enemigo.balas,1)
+    mi_enemigo.detectar_colisiones(lista_plataformas)
 
-
-    mi_personaje.update(PANTALLA, lista_plataformas)  # Update character position and animation
+    # mi_personaje.update(PANTALLA, lista_plataformas)  # Update character position and animation
     # actualizar_pantalla(PANTALLA, mi_personaje, fondo, plataformas_group, item)
     # PANTALLA.blit(my_item.image, my_item.rect)
     mi_personaje.dibujar(PANTALLA)
     mi_enemigo.dibujar(PANTALLA)
+    # plataforma.dibujar(PANTALLA)
+    # plataforma2.dibujar(PANTALLA)
 
-
-    item.draw(PANTALLA)
+    # items_group.draw(PANTALLA)
 
     for lado in lados_piso:
-    
         pygame.draw.rect(PANTALLA,"Orange",lados_piso[lado],3)
     for lado in mi_personaje.lados:
             pygame.draw.rect(PANTALLA,"Blue",mi_personaje.lados[lado],3)
@@ -297,7 +268,7 @@ while True:
     
     pygame.draw.rect(PANTALLA, "Red", plataforma,3)
     pygame.draw.rect(PANTALLA,"Green", plataforma2, 3)
-    
+    pygame.draw.rect(PANTALLA,"Blue", item.rect, 3)
    
     for bala in mi_personaje.balas:
         bala.update()

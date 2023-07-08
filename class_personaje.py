@@ -6,7 +6,7 @@ from animaciones2 import*
 import random
 from class_item import * 
 
-# from mainnuevo import *
+
 class Personaje():
     def __init__(self,tamaño,animaciones,posicion_inicial,velocidad):
         
@@ -25,10 +25,10 @@ class Personaje():
         self.animaciones=animaciones
         self.reescalar_animaciones()
         #RECTANGULOS:
-        rectangulo= self.animaciones["camina_derecha"][0].get_rect()
-        rectangulo.x= posicion_inicial[0]
-        rectangulo.y= posicion_inicial[1]
-        self.lados= obtener_rectangulos(rectangulo)
+        self.rect= self.animaciones["camina_derecha"][0].get_rect()
+        self.rect.x= posicion_inicial[0]
+        self.rect.y= posicion_inicial[1]
+        self.lados= obtener_rectangulos(self.rect)
         self.velocidad = velocidad
         #MOVIMIENTO:
         self.velocidad= velocidad
@@ -42,9 +42,24 @@ class Personaje():
         #enemigo:
         self.enemigo = None  # Referencia al enemigo
         self.danio_bala = 2  # Daño que causa la bala al enemigo
-        #RETANGULO:
-        self.rect = pygame.Rect(posicion_inicial[0], posicion_inicial[1], self.ancho, self.alto)
+        
+        # Vida personaje:
+        self.saludd = self.salud
+        #balas:
 
+
+
+    # def morir(self):
+    #         self.kill()
+            
+
+
+        
+    # def check_collision_with_item(self, item):
+    #     if pygame.sprite.collide_rect(self, item):
+    #         self.morir()  # Llamar a la función morir del personaje
+    #         return True
+    #     return False
     def check_collision_with_item(self, item):
         return pygame.sprite.collide_rect(self, item)
     
@@ -105,11 +120,10 @@ class Personaje():
         # self.actualizar_rect()
         # # Detección de colisiones
         # self.detectar_colisiones(piso)
+        self.aplicar_gravedad(pantalla, piso)
         self.rect.x += self.desplazamiento_X
         
         self.rect.y += self.desplazamiento_y
-
-
 
         match self.que_hace:
             case "derecha":
@@ -133,11 +147,9 @@ class Personaje():
         # self.actualizar_rect()
 
 
-        self.aplicar_gravedad(pantalla,piso)
+        # self.aplicar_gravedad(pantalla,piso)
 
    
-    
-
     def aplicar_gravedad(self,pantalla,lista_plataformas):
         if self.esta_saltando:
             self.animar(pantalla, "salta")
@@ -154,7 +166,6 @@ class Personaje():
                 break
             else:
                 self.esta_saltando = True
-
 
     def lanzar_proyectil(self):
         if len(self.balas) < 10:
