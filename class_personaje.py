@@ -32,36 +32,23 @@ class Personaje():
         self.velocidad = velocidad
         #MOVIMIENTO:
         self.velocidad= velocidad
-        self.desplazamiento_y=0
+        self.desplazamiento_y = 0  
         self.desplazamiento_X=0
         #BALAS:
         self.balas = []
         #VIDA DEL PERSONAJE:
-        self.salud= 10
+        self.salud_maxima = 10
+        self.salud = self.salud_maxima
         self.direccion = "derecha"
         #enemigo:
         self.enemigo = None  # Referencia al enemigo
         self.danio_bala = 2  # Daño que causa la bala al enemigo
-        
-        # Vida personaje:
-        self.saludd = self.salud
-        #balas:
+        self.colisiones_enemigo = 0
 
+    
 
-
-    # def morir(self):
-    #         self.kill()
-            
-
-
-        
     # def check_collision_with_item(self, item):
-    #     if pygame.sprite.collide_rect(self, item):
-    #         self.morir()  # Llamar a la función morir del personaje
-    #         return True
-    #     return False
-    def check_collision_with_item(self, item):
-        return pygame.sprite.collide_rect(self, item)
+    #     return pygame.sprite.collide_rect(self, item)
     
     def reescalar_animaciones(self):
         for clave in self.animaciones:
@@ -71,7 +58,9 @@ class Personaje():
     def actualizar_rect(self):
         self.rect.x = self.lados["main"].x
         self.rect.y = self.lados["main"].y
-        
+        for lado in self.lados:
+            self.lados[lado].x = self.rect.x
+            self.lados[lado].y = self.rect.y
 
     def mover(self,velocidad):
         for lado in self.lados:
@@ -100,14 +89,10 @@ class Personaje():
                 self.lados["main"].bottom = piso["main"].top
                 self.desplazamiento_y = 0
                 self.esta_saltando = False
-            # Verificar si el personaje está por debajo de la plataforma
-            elif self.desplazamiento_y < 0 and self.lados["top"].colliderect(piso["main"]):
-                self.lados["main"].top = piso["main"].bottom
-                self.desplazamiento_y = 0
-            if self.lados["main"].colliderect(piso["main"]):
-                if self.que_hace == "derecha":
+            # Verificar si el personaje está tratando de pasar por debajo de la plataforma
+            if self.desplazamiento_X > 0 and self.lados["right"].colliderect(piso["main"]) and self.lados["bottom"].right > piso["main"].left:
                     self.lados["main"].right = piso["main"].left
-                elif self.que_hace == "izquierda":
+            elif self.desplazamiento_X < 0 and self.lados["left"].colliderect(piso["main"]) and self.lados["bottom"].left < piso["main"].right:
                     self.lados["main"].left = piso["main"].right
         if self.enemigo:
             for bala in self.balas:
@@ -120,11 +105,10 @@ class Personaje():
         # self.actualizar_rect()
         # # Detección de colisiones
         # self.detectar_colisiones(piso)
-        self.aplicar_gravedad(pantalla, piso)
+        
         self.rect.x += self.desplazamiento_X
         
         self.rect.y += self.desplazamiento_y
-
         match self.que_hace:
             case "derecha":
                 if not self.esta_saltando:
@@ -142,12 +126,13 @@ class Personaje():
                 if not self.esta_saltando:
                     self.animar(pantalla,"quieto")
         
-        # self.detectar_colisiones(piso)
+        self.detectar_colisiones(piso)
 
         # self.actualizar_rect()
 
 
-        # self.aplicar_gravedad(pantalla,piso)
+        self.aplicar_gravedad(pantalla,piso)
+        self.detectar_colisiones(piso)
 
    
     def aplicar_gravedad(self,pantalla,lista_plataformas):
@@ -244,8 +229,8 @@ class Enemigo(pygame.sprite.Sprite):
         self.salud_maxima = 10
         self.salud = self.salud_maxima
         #balas:
-        self.balas= []
-        
+        self.balas= []       
+        self.movimiento = 0
     def reescalar_animaciones(self):
         for clave in self.animaciones:
             reescalar_imagenes(self.animaciones[clave], (self.ancho, self.alto))
@@ -273,8 +258,9 @@ class Enemigo(pygame.sprite.Sprite):
         self.contador_pasos += 1
 
     def dibujar(self, cuadro):
-        pygame.draw.rect(cuadro, "Red", (self.lados["main"].x + 8, self.lados["main"].y - 50, 75, 20))
-        pygame.draw.rect(cuadro, "Green", (self.lados["main"].x + 8, self.lados["main"].y - 50, 75 - (5 * (10-self.salud)), 20))
+        if self.salud > 0:  
+            pygame.draw.rect(cuadro, "Red", (self.lados["main"].x + 8, self.lados["main"].y - 50, 75, 20))
+            pygame.draw.rect(cuadro, "Green", (self.lados["main"].x + 8, self.lados["main"].y - 50, 75 - (5 * (10-self.salud)), 20))
         for bala in self.balas:
             bala.draw(cuadro)
   
@@ -325,3 +311,10 @@ class Enemigo(pygame.sprite.Sprite):
             if bala.rect.colliderect(self.rect):
                     self.recibir_dano(1)  # Restar 1 punto de salud al enemigo al recibir un impacto de una bala
                     self.balas.remove(bala)
+            # Actualizar movimiento del enemigo
+        if self.direccion == "derecha":
+            self.movimiento = self.velocidad
+        elif self.direccion == "izquierda":
+            self.movimiento = -self.velocidad
+        else:
+            self.movimiento = 0
