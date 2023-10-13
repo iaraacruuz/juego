@@ -6,16 +6,19 @@ from class_personaje import *
 from modo2 import *
 from class_item import *
 from class_plataforma import * 
+from class_trampa import *
 
-def actualizar_pantalla(pantalla, un_personaje: Personaje, fondo, lista_plataformas, plataforma_imagen, plataforma_imagen_2, items_list):
+def actualizar_pantalla(pantalla, un_personaje: Personaje, fondo, lista_plataformas, plataforma_imagen, plataforma_imagen_2, items_list,trampa_list):
     pantalla.blit(fondo, (0, 0))
     pantalla.blit(plataforma_imagen, plataforma)
     pantalla.blit(plataforma_imagen_2, plataforma2)
-    pantalla.blit(plataforma_imagen_3, plataforma3)
     un_personaje.update(pantalla, lista_plataformas)
     
     for item in items_list:
         item.draw(pantalla)
+    for trampa in trampa_list:
+        trampa.dibujar(pantalla)
+
 
 #PANTALLA:
 W, H = 1200, 600
@@ -55,6 +58,20 @@ min_y, max_y = int(H * 0.4), int(H * 0.6)  # Rango de coordenadas Y ajustado
 num_items = 10  # Número de items que deseas generar
 
 items_list = Item.generar_items(num_items, min_x, max_x, min_y, max_y, item_image)
+
+
+#TRAMPA:
+trampa_group = pygame.sprite.Group()
+trampa_image = pygame.image.load("posimaa.png") 
+trampa_image = pygame.transform.scale(trampa_image, (40, 40))  # Replace the size with your desired dimensions
+
+min_x, max_x = 5, W  # Rango de coordenadas X
+min_y, max_y = int(H * 0.4), int(H * 0.6)  # Rango de coordenadas Y ajustado
+num_trampa = 3  # Numero de items que desea generar
+
+trampa_list = Trampa.generar_trampa(num_trampa, min_x, max_x, min_y, max_y, trampa_image)
+trampa_group.add(trampa_list)
+
 ###############################################################
 #PERSONAJE:
 
@@ -144,10 +161,10 @@ def redraw():
     pygame.display.update()
 
 #MUSICA FONDO:
-ruta_musica= "musica.mp3"
-musica_fondo= pygame.mixer.music.load(ruta_musica)
+# ruta_musica= "musica.mp3"
+# musica_fondo= pygame.mixer.music.load(ruta_musica)
 
-pygame.mixer.music.play(-1)
+# pygame.mixer.music.play(-1)
 
 #Musica Golpe PERSONAJE:
 ruta_colision = "reaccion.mp3"
@@ -282,6 +299,15 @@ while True:
         item.draw(PANTALLA)  # Dibuja el item en la pantalla
         if item.recogido:
             items_list.remove(item)
+
+     
+    for trampa in trampa_list:
+        puntaje = trampa.check_colision(mi_personaje, puntaje)
+        # trampa.update()  # Actualiza el estado del item
+        trampa.dibujar(PANTALLA)  # Dibuja el item en la pantalla
+        if trampa.recogido:
+            trampa_list.remove(trampa)
+            mi_personaje.salud -= 10
     ######################################################################
     if mi_enemigo.rect.left <= limite_izquierdo or mi_enemigo.rect.right >= limite_derecho:
         mi_enemigo.cambiar_direccion()
@@ -290,9 +316,18 @@ while True:
 
 
 
-
-    print(mi_personaje.rect)
+    
+    for trampa in trampa_list:
+        trampa.dibujar(PANTALLA)
+        trampa.update()
+    
+    items_group.update(lista_plataformas)
+    
+    trampa_group.update(lista_plataformas)
+    trampa_group.update() 
+    trampa_group.draw(PANTALLA)
     items_group.draw(PANTALLA)
+
     mi_personaje.update(PANTALLA, lista_plataformas) 
 
     mi_personaje.aplicar_gravedad(PANTALLA, lista_plataformas)
@@ -337,22 +372,42 @@ while True:
     
 
 
-    if mi_personaje.rect.colliderect(mi_enemigo.rect):
-        if not invulnerable and tiempo_actual - tiempo_ultimo_danio > tiempo_invulnerable:
+    # if mi_personaje.rect.colliderect(mi_enemigo.rect):
+    #     if not invulnerable and tiempo_actual - tiempo_ultimo_danio > tiempo_invulnerable:
+    #         sonido_colision.play()
+    #         mi_personaje.salud -= danio_enemigo
+    #         tiempo_ultimo_danio = tiempo_actual
+    #         invulnerable = True
+    #         tiempo_inicio_invulnerable = tiempo_actual
+    #         if mi_personaje.salud < 0:
+    #             mi_personaje.salud = 0  # Establecer la salud mínima en 0
+    #         else:
+    #             # Reducir la salud en un valor específico en lugar de establecerla en 0
+    #             mi_personaje.salud -= danio_reduccion_salud
+
+
+    if mi_enemigo.salud > 0:
+        if mi_enemigo.rect.colliderect(mi_personaje.rect):
+            # Your collision handling code for when the enemy is alive
             sonido_colision.play()
             mi_personaje.salud -= danio_enemigo
             tiempo_ultimo_danio = tiempo_actual
             invulnerable = True
             tiempo_inicio_invulnerable = tiempo_actual
-            if mi_personaje.salud < 0:
-                mi_personaje.salud = 0  # Establecer la salud mínima en 0
-            else:
-                # Reducir la salud en un valor específico en lugar de establecerla en 0
-                mi_personaje.salud -= danio_reduccion_salud
 
 
-    if not invulnerable or tiempo_actual - tiempo_inicio_invulnerable > duracion_invulnerabilidad:
-        invulnerable = False
+        if not invulnerable or tiempo_actual - tiempo_inicio_invulnerable > duracion_invulnerabilidad:
+            invulnerable = False
+            #colision de mi enemigo con la plataforma:
+            if mi_enemigo.lados["main"].colliderect(plataforma.rect):
+                mi_enemigo.cambiar_direccion()
+
+            # items_group.update(lista_plataformas)
+        
+        else:
+        # If the enemy is dead, you don't need to perform collision checks
+            pass
+
 
   
     if len(enemigos_group) > 0:
@@ -365,32 +420,57 @@ while True:
             sprites.remove(mi_enemigo)
             mi_enemigo.morir()
 
+    
     if mi_enemigo_2.salud < 0:
         enemigos_group.remove(mi_enemigo_2)
         sprites.remove(mi_enemigo_2)
         mi_enemigo_2.morir()
 
+    
+    if mi_enemigo.rect.colliderect(plataforma.rect):
+        if mi_enemigo.rect.left <= plataforma.rect.right and mi_enemigo.movimiento < 0:
+            mi_enemigo.cambiar_direccion()  # Cambia la dirección si colisiona con el lado izquierdo de la plataforma
+        elif mi_enemigo.rect.right >= plataforma.rect.left and mi_enemigo.movimiento > 0:
+            mi_enemigo.cambiar_direccion()  # Cambia la dirección si colisiona con el lado derecho de la plataforma
 
-    if mi_personaje.rect.colliderect(mi_enemigo.rect):
-        if not invulnerable and tiempo_actual - tiempo_ultimo_danio > tiempo_invulnerable:
-            sonido_colision.play()
-            mi_personaje.salud -= danio_enemigo
-            tiempo_ultimo_danio = tiempo_actual
-            invulnerable = True
-            tiempo_inicio_invulnerable = tiempo_actual
-        elif mi_personaje.salud < 0:
-                mi_personaje.salud = 0  # Establecer la salud mínima en 0
-        else:
-                # Reducir la salud en un valor específico en lugar de establecerla en 0
-                mi_personaje.salud -= danio_reduccion_salud
+    
+    if mi_enemigo in enemigos_group:
+        mi_enemigo.detectar_colisiones(lista_plataformas)
+
+    # Detención de colisiones con el enemigo después de su muerte
+    if mi_enemigo.salud <= 0 :
+     if mi_enemigo in enemigos_group:
+        enemigos_group.remove(mi_enemigo)
+        mi_enemigo.morir()
+        # Otro código necesario después de que el enemigo muere
+        if mi_enemigo.lados["main"] in lista_plataformas:
+            lista_plataformas.remove(mi_enemigo.lados["main"])
+
+    if mi_enemigo in enemigos_group:
+        enemigos_group.update(PANTALLA, lista_plataformas, mi_enemigo.balas, 1)
+        mi_enemigo.dibujar(PANTALLA)
+        mi_enemigo.detectar_colisiones(lista_plataformas)
+
+
+    # if mi_personaje.rect.colliderect(mi_enemigo.rect):
+    #     if not invulnerable and tiempo_actual - tiempo_ultimo_danio > tiempo_invulnerable:
+    #         sonido_colision.play()
+    #         mi_personaje.salud -= danio_enemigo
+    #         tiempo_ultimo_danio = tiempo_actual
+    #         invulnerable = True
+    #         tiempo_inicio_invulnerable = tiempo_actual
+    #     elif mi_personaje.salud < 0:
+    #             mi_personaje.salud = 0  # Establecer la salud mínima en 0
+    #     else:
+    #             # Reducir la salud en un valor específico en lugar de establecerla en 0
+    #             mi_personaje.salud -= danio_reduccion_salud
 
 
     if not invulnerable or tiempo_actual - tiempo_inicio_invulnerable > duracion_invulnerabilidad:
         invulnerable = False
-    # if mi_personaje.rect.colliderect(mi_enemigo.rect):
-    #     mi_personaje.salud -= 10  # Reduce la salud en 10 (ajusta el valor según tus necesidades)
 
-    if mi_personaje.salud <= 0 : 
+
+    if mi_personaje.salud < 0 : 
         mi_personaje.salud = 0 
         font_game_over = pygame.font.Font(None, 100)
         texto_game_over = font_game_over.render("GAME OVER", True, (255, 0, 0))
@@ -408,7 +488,7 @@ while True:
 
     lista_plataformas.append(plataforma2.obtener_lados())
 
-    actualizar_pantalla(PANTALLA, mi_personaje, fondo, lista_plataformas, plataforma_imagen, plataforma_imagen_2,items_list)
+    actualizar_pantalla(PANTALLA, mi_personaje, fondo, lista_plataformas, plataforma_imagen, plataforma_imagen_2,items_list,trampa_list)
      # Dibujar y actualizar enemigo
     mi_personaje.detectar_colisiones(lista_plataformas)
     enemigos_group.update(PANTALLA, lista_plataformas, mi_enemigo.balas,1)

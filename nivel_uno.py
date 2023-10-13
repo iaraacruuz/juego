@@ -4,6 +4,7 @@ from animaciones2 import *
 from class_personaje import *
 from modo2 import *
 from class_item import *
+from class_trampa import * 
 from class_plataforma import * 
 from nivel import Nivel
 
@@ -13,7 +14,7 @@ class NivelUno(Nivel):
         W= pantalla.get_width()
         H= pantalla.get_height()
         # Fondo  
-        fondo = pygame.image.load("ciudad.jpg")
+        fondo = pygame.image.load("ciudad3.jpg")
         fondo = pygame.transform.scale(fondo, (W,H))
 
 
@@ -46,6 +47,18 @@ class NivelUno(Nivel):
         
         items_list = Item.generar_items(num_items, min_x, max_x, min_y, max_y, item_image)
         ###############################################################
+        # #TRAMPA:
+        # trampa_group = pygame.sprite.Group()
+        # trampa_image = pygame.image.load("posimaa.png") 
+        # trampa_image = pygame.transform.scale(trampa_image, (40, 40))  # Replace the size with your desired dimensions
+
+        # min_x, max_x = 5, W  # Rango de coordenadas X
+        # min_y, max_y = int(H * 0.4), int(H * 0.6)  # Rango de coordenadas Y ajustado
+        # num_trampa = 2  # Numero de items que desea generar
+
+        # trampa_list = Trampa.generar_trampa(num_trampa, min_x, max_x, min_y, max_y, trampa_image)
+        # trampa_group.add(trampa_list)
+
         #PERSONAJE:
 
         posicion_inicial= (H/2 - 300,500)
@@ -118,10 +131,10 @@ class NivelUno(Nivel):
             pygame.display.update()
 
         #MUSICA FONDO:
-        ruta_musica= "musica.mp3"
-        self.musica_fondo= pygame.mixer.music.load(ruta_musica)
+        # ruta_musica= "musica.mp3"
+        # self.musica_fondo= pygame.mixer.music.load(ruta_musica)
 
-        pygame.mixer.music.play(-1)
+        # pygame.mixer.music.play(-1)
 
         #Musica Golpe PERSONAJE:
         ruta_colision = "reaccion.mp3"
@@ -141,6 +154,7 @@ class NivelUno(Nivel):
 
         self.tiempo_inicio_invulnerable = 0
         self.duracion_invulnerabilidad = 100
+
         # super().update(lista_eventos)
         #############################################
         super().__init__(pantalla, W, H, mi_personaje, lista_plataformas, fondo, limite_izquierdo, limite_derecho, items_list, mi_enemigo, tiempo_inicio, tiempo_total)

@@ -80,7 +80,7 @@ class Personaje():
         pygame.draw.rect(cuadro, "Red", (self.lados["main"].x + 8, self.lados["main"].y - 50, 75, 20))
         pygame.draw.rect(cuadro, "Green", (self.lados["main"].x + 8, self.lados["main"].y - 50, 75 - (5 * (10-self.salud)), 20))
         for bala in self.balas:
-            bala.draw(cuadro,bala)
+            bala.draw(cuadro)
 
 
     def detectar_colisiones(self, lista_plataformas):
@@ -102,9 +102,6 @@ class Personaje():
                     break
 
     def update(self,pantalla,piso):
-        # self.actualizar_rect()
-        # # Detección de colisiones
-        # self.detectar_colisiones(piso)
         
         self.rect.x += self.desplazamiento_X
         
@@ -179,7 +176,7 @@ class proyectiles(object):
             self.rect = pygame.Rect(x - radius, y - radius, radius * 2, radius * 2)
         
 
-    def draw(self, cuadro,bala):
+    def draw(self, cuadro):
             pygame.draw.circle(cuadro, self.color, (self.x, self.y), self.radius)
         
 
@@ -187,7 +184,7 @@ class proyectiles(object):
         if alguien.salud > 0:
             alguien.salud -= 1
         else:
-            del alguien  # Delete the target object
+            del alguien  # elimina el objeto
 
     def mover(self):
         self.x += self.velocidad
@@ -231,6 +228,7 @@ class Enemigo(pygame.sprite.Sprite):
         #balas:
         self.balas= []       
         self.movimiento = 0
+
     def reescalar_animaciones(self):
         for clave in self.animaciones:
             reescalar_imagenes(self.animaciones[clave], (self.ancho, self.alto))
@@ -289,7 +287,7 @@ class Enemigo(pygame.sprite.Sprite):
 
 
     def morir(self):
-            self.kill()
+        self.kill()
             
 
 
@@ -304,7 +302,6 @@ class Enemigo(pygame.sprite.Sprite):
                 self.balas.remove(bala)
             else:
                 bala.mover()
-                
                 bala.draw(pantalla)
                 bala.update()
 

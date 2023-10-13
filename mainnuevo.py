@@ -6,8 +6,9 @@ from class_personaje import *
 from modo2 import *
 from class_item import *
 from class_plataforma import * 
+from class_trampa import *
 
-def actualizar_pantalla(pantalla, un_personaje: Personaje, fondo, lista_plataformas, plataforma_imagen, plataforma_imagen_2, items_list):
+def actualizar_pantalla(pantalla, un_personaje: Personaje, fondo, lista_plataformas, plataforma_imagen, plataforma_imagen_2, items_list,trampa_list):
     pantalla.blit(fondo, (0, 0))
     pantalla.blit(plataforma_imagen, plataforma)
     pantalla.blit(plataforma_imagen_2, plataforma2)
@@ -15,6 +16,8 @@ def actualizar_pantalla(pantalla, un_personaje: Personaje, fondo, lista_platafor
     
     for item in items_list:
         item.draw(pantalla)
+    for trampa in trampa_list:
+        trampa.dibujar(pantalla)
 
 #PANTALLA:
 W, H = 1200, 600
@@ -25,8 +28,6 @@ PANTALLA = pygame.display.set_mode(TAMAÑO)
 # Fondo  
 fondo = pygame.image.load("ciudad3.jpg")
 fondo = pygame.transform.scale(fondo, TAMAÑO)
-
-
 pygame.init() 
 
 #CRONOMETRO:
@@ -37,23 +38,36 @@ tiempo_total = 60  # Duración total del cronómetro en segundos
 
 #PUNTAJE:
 puntaje = 0
+
 #INVULNERABILIDAD:
 
 invulnerable = False
-tiempo_invulnerable = 1000  # Tiempo en milisegundos (ejemplo: 1000 = 1 segundo)
+tiempo_invulnerable = 1000  # Tiempo en milisegundos 
 tiempo_ultimo_danio = pygame.time.get_ticks()  # Obtén el tiempo actual en milisegundos
 
 # # ITEMS:
 
 items_group = pygame.sprite.Group()
-item_image = pygame.image.load("15.png")  # Replace with the actual image path
+item_image = pygame.image.load("15.png") 
 item_image = pygame.transform.scale(item_image, (50, 50))  # Replace the size with your desired dimensions
 
 min_x, max_x = 5, W  # Rango de coordenadas X
 min_y, max_y = int(H * 0.4), int(H * 0.6)  # Rango de coordenadas Y ajustado
-num_items = 10  # Número de items que deseas generar
+num_items = 10  # Numero de items que desea generar
 
 items_list = Item.generar_items(num_items, min_x, max_x, min_y, max_y, item_image)
+
+#TRAMPA:
+trampa_group = pygame.sprite.Group()
+trampa_image = pygame.image.load("posimaa.png") 
+trampa_image = pygame.transform.scale(trampa_image, (40, 40))  # Replace the size with your desired dimensions
+
+min_x, max_x = 5, W  # Rango de coordenadas X
+min_y, max_y = int(H * 0.4), int(H * 0.6)  # Rango de coordenadas Y ajustado
+num_trampa = 2  # Numero de items que desea generar
+
+trampa_list = Trampa.generar_trampa(num_trampa, min_x, max_x, min_y, max_y, trampa_image)
+trampa_group.add(trampa_list)
 ###############################################################
 #PERSONAJE:
 
@@ -126,11 +140,11 @@ def redraw():
 
     pygame.display.update()
 
-#MUSICA FONDO:
-ruta_musica= "musica.mp3"
-musica_fondo= pygame.mixer.music.load(ruta_musica)
+# #MUSICA FONDO:
+# ruta_musica= "musica.mp3"
+# musica_fondo= pygame.mixer.music.load(ruta_musica)
 
-pygame.mixer.music.play(-1)
+# pygame.mixer.music.play(-1)
 
 #Musica Golpe PERSONAJE:
 ruta_colision = "reaccion.mp3"
@@ -142,11 +156,7 @@ limite_derecho = W - mi_enemigo.lados["main"].width
 if tanda_balas == 0:
     tanda_balas = 1
 #########################
-# player_group = pygame.sprite.Group()
-# item_group = pygame.sprite.Group()
 
-# player_group.add(mi_personaje)
-# item_group.add(my_item)
 #######################
 tiempo_ultimo_danio = pygame.time.get_ticks()  # Obtén el tiempo actual en milisegundos
 
@@ -171,8 +181,6 @@ while True:
                     mi_personaje.lanzar_proyectil()
         
           
-    
-
     
 
     keys = pygame.key.get_pressed() # Teclas presionadas
@@ -200,8 +208,8 @@ while True:
         tanda_balas +=1
     if tanda_balas>3:
         tanda_balas=0
-    #Contacto del rpoyectil con el villano:
 
+    #Contacto del proyectil con el villano:
     if tanda_balas == 1:
         for bala in mi_personaje.balas:
             if len(mi_personaje.balas) < 5:
@@ -211,15 +219,15 @@ while True:
             tanda_balas = 2
 
 
-   
+   #comportamiento de la bala:
     for bala in mi_personaje.balas:
         if bala.rect.colliderect(mi_enemigo.rect):
             sonido_golpe.play()
             mi_enemigo.salud -= 5
             mi_personaje.balas.remove(bala)
-  
         else:
             bala.update()  # Actualiza la posición de la bala
+
     for bala in mi_personaje.balas: 
         if bala.x < W and bala.x > 0:
                 # Mueve la bala si está dentro de la ventana
@@ -236,52 +244,62 @@ while True:
     
         
 
-
-    # if mi_personaje.lados["main"].x > W:
-    #     mensaje = fuente.render("PASASTE DE NIVEL", True, (255, 255, 255))
-    #     posicion_mensaje = mensaje.get_rect(center=(W // 2, H // 2))
-    #     PANTALLA.blit(mensaje, posicion_mensaje)
-    #     pygame.display.update()
-    #     pygame.time.wait(3000)  # Esperar 3 segundos antes de salir del juego
-    #     pygame.quit()
-    #     sys.exit(0)
-    #     break  # Agregar esta línea para detener el bucle while True
     #############################################################
  
-
+    #detecta colision con la bala:
     mi_enemigo.detectar_colisiones_bala(mi_enemigo.balas,1)
 
+    #colision de mi enemigo con la plataforma:
     if mi_enemigo.lados["main"].colliderect(plataforma.rect):
         mi_enemigo.cambiar_direccion()
 
-    items_group.update(lista_plataformas)
- 
  
     ######################################################
+
     for item in items_list:
         puntaje = item.check_collision(mi_personaje, puntaje)
         item.update()  # Actualiza el estado del item
         item.draw(PANTALLA)  # Dibuja el item en la pantalla
         if item.recogido:
             items_list.remove(item)
+
+
+    for trampa in trampa_list:
+        puntaje = trampa.check_colision(mi_personaje, puntaje)
+        # trampa.update()  # Actualiza el estado del item
+        trampa.dibujar(PANTALLA)  # Dibuja el item en la pantalla
+        if trampa.recogido:
+            trampa_list.remove(trampa)
+            mi_personaje.salud -= 10
     ######################################################################
+    #limites del enemigo con la pantalla:
+
     if mi_enemigo.rect.left <= limite_izquierdo or mi_enemigo.rect.right >= limite_derecho:
         mi_enemigo.cambiar_direccion()
     
     tiempo_actual = pygame.time.get_ticks()
 
 
-
-
-    print(mi_personaje.rect)
+    for trampa in trampa_list:
+        trampa.dibujar(PANTALLA)
+        trampa.update()
+    
+    items_group.update(lista_plataformas)
+    
+    trampa_group.update(lista_plataformas)
+    trampa_group.update() 
+    trampa_group.draw(PANTALLA)
     items_group.draw(PANTALLA)
+    
+
     mi_personaje.update(PANTALLA, lista_plataformas) 
 
     mi_personaje.aplicar_gravedad(PANTALLA, lista_plataformas)
    
 
-            
 
+
+    
     if mi_personaje.desplazamiento_X > 0 and mi_personaje.lados["right"].colliderect(plataforma.rect) and \
             mi_personaje.lados["bottom"].right > plataforma.rect.left and \
             mi_personaje.lados["top"].bottom > plataforma.rect.top and \
@@ -293,18 +311,35 @@ while True:
             mi_personaje.lados["bottom"].top < plataforma.rect.bottom:
         mi_personaje.lados["main"].left = plataforma.rect.right
 
+    
+    for lados_plataforma in lista_plataformas:
+        if mi_personaje.rect.colliderect(lados_plataforma['main']):
+            if mi_personaje.desplazamiento_y > 0:  # Character is moving downward (falling)
+                mi_personaje.rect.bottom = lados_plataforma['main'].top
+                mi_personaje.desplazamiento_y = 0
+                mi_personaje.en_aire = False
+            elif mi_personaje.desplazamiento_y < 0:  # Character is moving upward (jumping)
+                mi_personaje.rect.top = lados_plataforma['main'].bottom
+                mi_personaje.desplazamiento_y = 0
 
-
+    # Update character's position
+    mi_personaje.rect.x += mi_personaje.desplazamiento_X
+    mi_personaje.rect.y += mi_personaje.desplazamiento_y
 
     mi_personaje.detectar_colisiones(lista_plataformas)
-    #cronometro: 
+
+    mi_personaje.aplicar_gravedad(PANTALLA, lista_plataformas)
+
+    
+
+    #cronometro 60s: 
     tiempo_transcurrido = time.time() - tiempo_inicio
     tiempo_restante = tiempo_total - int(tiempo_transcurrido)
 
     fuente = pygame.font.Font(None, 36)
-    texto_cronometro = fuente.render("Tiempo: " + str(tiempo_restante) + " s", True, (255, 255, 255))
+    texto_cronometro = fuente.render("Tiempo: " + str(tiempo_restante) + " s", True, (255, 0, 0))
 
-
+    #condicion cuando se acaban los 60s:
     if tiempo_restante <= 0:
         
             font_game_over = pygame.font.Font(None, 100)
@@ -315,22 +350,59 @@ while True:
             pygame.time.wait(3000)  # Esperar 3 segundos antes de salir del juego
             pygame.quit()
             sys.exit(0)
-
-    
-    if mi_enemigo.rect.colliderect(mi_personaje.rect):
-        # if not invulnerable and tiempo_actual - tiempo_ultimo_danio > tiempo_invulnerable:
+    if mi_enemigo.salud > 0:
+        if mi_enemigo.rect.colliderect(mi_personaje.rect):
+            # Your collision handling code for when the enemy is alive
             sonido_colision.play()
             mi_personaje.salud -= danio_enemigo
             tiempo_ultimo_danio = tiempo_actual
             invulnerable = True
             tiempo_inicio_invulnerable = tiempo_actual
-    # if mi_personaje.salud < 0:
-    #     mi_personaje.salud = 0  # Establecer la salud en 0 directamente
 
-    if not invulnerable or tiempo_actual - tiempo_inicio_invulnerable > duracion_invulnerabilidad:
-        invulnerable = False
+
+        if not invulnerable or tiempo_actual - tiempo_inicio_invulnerable > duracion_invulnerabilidad:
+            invulnerable = False
+            #colision de mi enemigo con la plataforma:
+            if mi_enemigo.lados["main"].colliderect(plataforma.rect):
+                mi_enemigo.cambiar_direccion()
+
+            # items_group.update(lista_plataformas)
         
-    if mi_personaje.salud < 0:
+        else:
+        # If the enemy is dead, you don't need to perform collision checks
+            pass
+
+    # if mi_personaje.rect.colliderect(mi_enemigo.rect):
+    #     # if not invulnerable and tiempo_actual - tiempo_ultimo_danio > tiempo_invulnerable:
+    #         sonido_colision.play()
+    #         mi_personaje.salud -= danio_enemigo
+    #         tiempo_ultimo_danio = tiempo_actual
+    #         invulnerable = True
+    #         tiempo_inicio_invulnerable = tiempo_actual
+
+
+    # if not invulnerable or tiempo_actual - tiempo_inicio_invulnerable > duracion_invulnerabilidad:
+    #     invulnerable = False
+
+    if mi_enemigo in enemigos_group:
+        mi_enemigo.detectar_colisiones(lista_plataformas)
+    # Detención de colisiones con el enemigo después de su muerte
+    if mi_enemigo.salud <= 0 :
+     if mi_enemigo in enemigos_group:
+        enemigos_group.remove(mi_enemigo)
+        mi_enemigo.morir()
+        # Otro código necesario después de que el enemigo muere
+        if mi_enemigo.lados["main"] in lista_plataformas:
+            lista_plataformas.remove(mi_enemigo.lados["main"])
+
+    if mi_enemigo in enemigos_group:
+        enemigos_group.update(PANTALLA, lista_plataformas, mi_enemigo.balas, 1)
+        mi_enemigo.dibujar(PANTALLA)
+        mi_enemigo.detectar_colisiones(lista_plataformas)
+
+
+    #condicion cuando se termina la salud del personaje:    
+    if mi_personaje.salud <= 0 :
         mi_personaje.salud = 0 
         font_game_over = pygame.font.Font(None, 100)
         texto_game_over = font_game_over.render("GAME OVER", True, (255, 0, 0))
@@ -340,38 +412,46 @@ while True:
         pygame.time.wait(3000)  # Esperar 3 segundos antes de salir del juego
         pygame.quit()
         sys.exit(0)
-    actualizar_pantalla(PANTALLA, mi_personaje, fondo, lista_plataformas, plataforma_imagen, plataforma_imagen_2,items_list)
-     # Dibujar y actualizar enemigo
-    enemigos_group.update(PANTALLA, lista_plataformas, mi_enemigo.balas,1)
 
+
+
+   
+    mi_personaje.detectar_colisiones(lista_plataformas)
+    actualizar_pantalla(PANTALLA, mi_personaje, fondo, lista_plataformas, plataforma_imagen, plataforma_imagen_2,items_list,trampa_list)
+    
+    # Dibujar y actualizar enemigo
+    enemigos_group.update(PANTALLA, lista_plataformas, mi_enemigo.balas,1)
+    #deteccion dee colisiones:
     mi_personaje.detectar_colisiones(lista_plataformas)
     mi_enemigo.detectar_colisiones(lista_plataformas)
 
+    #dibujar al personaje y enemigo:
     mi_personaje.dibujar(PANTALLA)
     mi_enemigo.dibujar(PANTALLA)
 
-    # items_group.draw(PANTALLA)
+    #texto puntaje:
     fuente = pygame.font.Font(None, 36)  # Crea una fuente para el texto
     texto_puntaje = fuente.render("Puntaje: " + str(puntaje), True, (255, 255, 255))  # Renderiza el texto del puntaje
     PANTALLA.blit(texto_puntaje, (W - 200, 20))  # Dibuja el texto en la posición deseada (en este caso, en la esquina superior derecha)
 
-    pygame.draw.rect(PANTALLA, "Orange", piso, 3)
+   #texto pasar de nivel: 
     if mi_enemigo.salud <= 0 and puntaje > 70:
-        mensaje = fuente.render("PASASTE DE NIVEL", True, (255, 255, 255))
+        mensaje = fuente.render("PASASTE DE NIVEL", True,  (255, 0, 0))
         posicion_mensaje = mensaje.get_rect(center=(W // 2, H // 2))
         PANTALLA.blit(mensaje, posicion_mensaje)
         pygame.display.update()
         pygame.time.wait(3000)
         pygame.quit()
         sys.exit(0)
+
+    #Dibujar rectangulos:
     for lado in mi_personaje.lados:
             pygame.draw.rect(PANTALLA,"Blue",mi_personaje.lados[lado],3)
     
-    # plataformas_group.draw(PANTALLA)
     for lado in lados_plataforma2:
         pygame.draw.rect(PANTALLA, "Green", lados_plataforma2[lado], 3)
     
-    
+    pygame.draw.rect(PANTALLA, "Orange", piso, 3)
     pygame.draw.rect(PANTALLA, "Red", plataforma,3)
     pygame.draw.rect(PANTALLA,"Green", plataforma2, 3)
     pygame.draw.rect(PANTALLA,"Blue", item.rect, 3)

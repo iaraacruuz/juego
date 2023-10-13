@@ -121,11 +121,11 @@ class NivelDos(Nivel):
 
             pygame.display.update()
 
-        #MUSICA FONDO:
-        ruta_musica= "musica.mp3"
-        self.musica_fondo= pygame.mixer.music.load(ruta_musica)
+        # #MUSICA FONDO:
+        # ruta_musica= "musica.mp3"
+        # self.musica_fondo= pygame.mixer.music.load(ruta_musica)
 
-        pygame.mixer.music.play(-1)
+        # pygame.mixer.music.play(-1)
 
         #Musica Golpe PERSONAJE:
         ruta_colision = "reaccion.mp3"

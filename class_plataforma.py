@@ -7,5 +7,6 @@ class Plataforma:
 
     def dibujar(self, pantalla):
         pantalla.blit(self.imagen, self.rect)
+        
     def obtener_lados(self):
         return obtener_rectangulos(self.rect)

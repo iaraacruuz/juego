@@ -4,6 +4,7 @@ from animaciones2 import *
 from class_personaje import *
 from modo2 import *
 from class_item import *
+from class_trampa import * 
 from class_plataforma import * 
 import time
 # from mainnuevo import *
@@ -19,15 +20,19 @@ class Nivel():
         self.plataformas = lista_plataformas
         self.img_fondo = imagen_fondo
         self.velocidad = 5
+        self.salud= 10
         self.direccion = 0
         self.limite_izquierdo = limite_izquierdo
         self.limite_derecho = limite_derecho
         self.items = items_list
+        # self.trampa=trampa_list
         self.tanda_balas = 0
+        self.balas=[]
         self.puntaje = 0
-        self.tiempo_inicio = tiempo_inicio
+        self.tiempo_inicio = 0
         self.tiempo_total = tiempo_total
         self.danio_enemigo = 10
+        self.danio_bala_jugador = 10
         self.invulnerable = False
         self.tiempo_ultimo_danio = pygame.time.get_ticks()
         self.duracion_invulnerabilidad = 2000
@@ -44,6 +49,7 @@ class Nivel():
         self.plataforma= Plataforma(self.plataforma_imagen, 400, 460, self.tamaño_plataforma[0], self.tamaño_plataforma[1])
         self.plataforma2=Plataforma(self.plataforma_imagen_2, 600, 400, self.tamaño_plataforma2[0], self.tamaño_plataforma2[1])
         self.items_group= pygame.sprite.Group()
+        self.trampa_group= pygame.sprite.Group()
         self.enemigos_group = pygame.sprite.Group()
         self.piso= pygame.Rect(0,0,W,15)
         # self.plataformas = [self.plataforma, self.plataforma2]
@@ -56,9 +62,13 @@ class Nivel():
 
 
     def update(self,lista_eventos):
+        # tiempo_actual = pygame.time.get_ticks()
+        # tiempo_transcurrido = tiempo_actual - self.tiempo_inicio
+        # tiempo_restante = self.tiempo_total - int(tiempo_transcurrido)
         tiempo_actual = pygame.time.get_ticks()
         tiempo_transcurrido = tiempo_actual - self.tiempo_inicio
-        tiempo_restante = self.tiempo_total - int(tiempo_transcurrido)
+        tiempo_restante = max(0, self.tiempo_total - int(tiempo_transcurrido / 1000))
+    
 
         if tiempo_restante <= 0:
             font_game_over = pygame.font.Font(None, 100)
@@ -78,34 +88,43 @@ class Nivel():
         
         self.leer_inputs()
         self.actualizar_pantalla(tiempo_restante)
-        self.actualizar_tanda_balas()
-        self.contacto_proyectil_villano()
-        self.actualizar_enemigo()
-        self.actualizar_items()
-        self.actualizar_tiempo()
-        self.detectar_colisiones()
-        self.dibujar_rectangulos()
-        self.dibujar_texto_puntaje()
-        self.dibujar_texto_cronometro()
+        # self.contacto_proyectil_villano()
+        # self.actualizar_enemigo()
+        # self.actualizar_items()
+        # # self.actualizar_trampa()
+        # self.actualizar_tanda_balas()
+        # self.actualizar_tiempo()
+        # self.detectar_colisiones()
+        # self.dibujar_rectangulos()
+        # self.dibujar_texto_puntaje()
+        # self.dibujar_texto_cronometro()
         # self.dibujar_personaje()
         # self.dibujar_enemigo()
-        self.dibujar_items()
-        self.dibujar_piso()
-        self.comprobar_paso_nivel()
-        self.detectar_colisiones_plataforma()
-        self.detectar_colisiones_jugador()
-        self.detectar_colisiones_enemigo()
-        self.detectar_colisiones_bala_enemigo()
-        self.detectar_colisiones_item()
-        self.detectar_colisiones_enemigo_plataforma()
-        self.detectar_colisiones_jugador_plataforma()
-        self.detectar_colisiones_bala_jugador()
-        self.detectar_colisiones_bala_enemigo()
-        self.detectar_colisiones_bala_jugador_plataforma()
-        self.detectar_colisiones_jugador_enemigo()
-        self.detectar_colisiones_jugador_item()
-        self.dibujar_personaje()
-        self.dibujar_enemigo()
+        # self.dibujar_items()
+        # # self.dibujar_trampa()
+        # self.dibujar_piso()
+        # self.comprobar_paso_nivel()
+        # self.detectar_colisiones_plataforma()
+        # self.detectar_colisiones_jugador()
+        # self.detectar_colisiones_enemigo()
+        # self.detectar_colisiones_bala_enemigo()
+        # self.detectar_colisiones_item()
+        # # self.detectar_colisiones_trampa()
+        # self.detectar_colisiones_enemigo_plataforma()
+        # self.detectar_colisiones_jugador_plataforma()
+        # self.detectar_colisiones_bala_jugador()
+        # self.detectar_colisiones_bala_enemigo()
+        # self.detectar_colisiones_bala_jugador_plataforma()
+        # self.detectar_colisiones_jugador_enemigo()
+        # self.detectar_colisiones_jugador_item()
+        # self.dibujar_personaje()
+        # self.dibujar_enemigo()
+        # self.contacto_proyectil_villano()
+        # self.actualizar_tanda_balas()
+        
+  
+        # self.detectar_colisiones_jugador_trampa()
+
 
     
     
@@ -151,6 +170,9 @@ class Nivel():
         #         pygame.draw.rect(self._slave,"Green", self.plataforma2, 3)
         for item in self.items:
                 pygame.draw.rect(self._slave,"Blue", item.rect, 3)
+        # for trampa in self.trampa:
+        #         pygame.draw.rect(self._slave,"Blue", trampa.rect, 3)
+
 
 
 
@@ -160,7 +182,15 @@ class Nivel():
         for plataforma in self.plataformas:
             self._slave.blit(plataforma_imagen, self.plataforma)
             self.img_fondo.blit(self.plataforma_imagen, self.plataforma2)
-        self.jugador.update(self._slave, self.plataformas)
+        self.jugador.update(self._slave, self.plataformas)      
+        # for enemigo in self.enemigos_group:
+        self.dibujar_enemigo()
+        
+        self.enemigo.update(self._slave, self.plataformas, self.jugador.balas, self.danio_enemigo)
+        
+        # self.enemigo.update(self._slave, self.plataformas, self.jugador.balas, self.danio_enemigo)
+        
+
         font = pygame.font.Font(None, 36)  # Crea una fuente con el tamaño de 36
         self.puntaje_surface = font.render(str(self.puntaje), True, (255, 255, 255))  # Convierte el puntaje en una superficie de texto renderizada
         self._slave.blit(self.puntaje_surface, (200,10))
@@ -169,10 +199,59 @@ class Nivel():
         self._slave.blit(tiempo_restante_surface, (10, 10))  # Dibuja el tiempo restante en la posición (10, 10)
         # self.dibujar_piso()
         # self._slave.blit(str(tiempo_restante),(10,10))
+        for bala in self.jugador.balas:
+            print("bueno")
+            if bala.rect.colliderect(self.enemigo.rect):  # Si colisiona con el enemigo
+                print("okkk")
+                self.dibujar_barra_de_salud(self.enemigo.rect.x, self.enemigo.rect.y,  self.enemigo.salud)
+                self.enemigo.salud -= self.danio_bala_jugador  # Disminuye la salud del enemigo
+                self.jugador.balas.remove(bala)  # Elimina la bala que impactó
+                self.sonido_golpe.play()
+                
+            else:
 
+                bala.update()  # Actualiza la posición de la bala
 
+                
         for item in self.items:
             item.draw(self._slave)
+        
+        self.actualizar_tanda_balas()
+        self.contacto_proyectil_villano()
+        self.actualizar_enemigo()
+        self.actualizar_items()
+        # self.actualizar_trampa()
+        self.actualizar_tanda_balas()
+        self.actualizar_tiempo()
+        self.detectar_colisiones()
+        self.dibujar_rectangulos()
+        self.dibujar_texto_puntaje()
+        self.dibujar_texto_cronometro()
+        self.dibujar_personaje()
+        self.dibujar_enemigo()
+        self.dibujar_items()
+        # self.dibujar_trampa()
+        self.dibujar_piso()
+        self.comprobar_paso_nivel()
+        self.detectar_colisiones_plataforma()
+        self.detectar_colisiones_jugador()
+        self.detectar_colisiones_enemigo()
+        self.detectar_colisiones_bala_enemigo()
+        self.detectar_colisiones_item()
+        # self.detectar_colisiones_trampa()
+        self.detectar_colisiones_enemigo_plataforma()
+        self.detectar_colisiones_jugador_plataforma()
+        self.detectar_colisiones_bala_jugador()
+        self.detectar_colisiones_bala_enemigo()
+        self.detectar_colisiones_bala_jugador_plataforma()
+        self.detectar_colisiones_jugador_enemigo()
+        self.detectar_colisiones_jugador_item()
+        self.dibujar_personaje()
+        self.dibujar_enemigo()
+        self.contacto_proyectil_villano()
+        # self.actualizar_tanda_balas()
+        
+      
         
 
 
@@ -192,22 +271,50 @@ class Nivel():
                 self.tanda_balas = 2
 
         for bala in self.jugador.balas:
+            print("averr")
             if bala.rect.colliderect(self.enemigo.rect):
+                print("odio el desamorrr")
                 self.sonido_golpe.play()
                 self.enemigo.salud -= 5
+                self.dibujar_barra_de_salud(self.enemigo.rect.x, self.enemigo.rect.y, self.enemigo.salud)
                 self.jugador.balas.remove(bala)
+                print("quieroverqonda")
             else:
                 bala.update()
+                print("chauuuuus")
+        balas_a_eliminar = []
+        # Eliminar las balas después del bucle
+        for bala in balas_a_eliminar:
+            self.jugador.balas.remove(bala)
 
         for bala in self.jugador.balas:
             if bala.x < self.ancho and bala.x > 0:
                 bala.x += bala.velocidad
             else:
                 self.jugador.balas.remove(bala)
+        
+      
+        # if self.enemigo.salud < 0:
+        #             self.enemigos_group.remove(self.enemigo)
+        #             self.enemigo.morir()
 
+        # for enemigo in self.enemigos_group:
         if self.enemigo.salud < 0:
-            self.enemigos_group.remove(self.enemigo)
-            self.enemigo.morir()
+            if self.enemigo in self.enemigos_group:   
+                print("oooo")
+                self.enemigos_group.remove(self.enemigo)
+                self.enemigo.morir()
+        
+        if self.enemigo.salud <0:  # Cambia el límite a -10 o cualquier otro valor deseado
+            if self.enemigo in self.enemigos_group:
+                print("oooo")
+                self.enemigos_group.remove(self.enemigo)
+                self.enemigo.morir()
+                        
+                
+
+
+
 
     def contacto_proyectil_villano(self):
         self.enemigo.detectar_colisiones_bala(self.enemigo.balas, 1)
@@ -220,6 +327,10 @@ class Nivel():
 
     def actualizar_items(self):
         self.items_group.update(self.plataformas)
+
+    
+    # def actualizar_trampa(self):
+    #     self.trampa_group.update(self.plataformas)
 
 
 
@@ -258,9 +369,13 @@ class Nivel():
     def dibujar_enemigo(self):
         self.enemigos_group.update(self._slave, self.plataformas, self.enemigo.balas, 1)
         self.enemigo.dibujar(self._slave)
+        self.dibujar_barra_de_salud(self.enemigo.rect.x, self.enemigo.rect.y,  self.enemigo.salud)
 
     def dibujar_items(self):
         self.items_group.draw(self._slave)
+    
+    # def dibujar_trampa(self):
+    #     self.trampa_group.draw(self._slave)
 
     def dibujar_piso(self):
         pygame.draw.rect(self._slave, "Orange", self.piso, 3)
@@ -296,7 +411,7 @@ class Nivel():
 
     def detectar_colisiones_bala_enemigo(self):
         for bala in self.jugador.balas:
-            if bala.rect.colliderect(self.enemigo.rect):
+            if self.bala.rect.colliderect(self.enemigo.rect):
                 self.sonido_golpe.play()
                 self.enemigo.salud -= 5
                 self.jugador.balas.remove(bala)
@@ -308,6 +423,15 @@ class Nivel():
             item.draw(self._slave)
             if item.recogido:
                 self.items.remove(item)
+    
+    
+    # def detectar_colisiones_trampa(self):
+    #     for trampa in self.trampa:
+    #         self.puntaje = trampa.check_collision(self.jugador, self.puntaje)
+    #         trampa.update()
+    #         trampa.draw(self._slave)
+    #         if trampa.recogido:
+    #             self.items.remove(trampa)
 
     def detectar_colisiones_enemigo_plataforma(self):
         if self.enemigo.rect.left <= self.limite_izquierdo or self.enemigo.rect.right >= self.limite_derecho:
@@ -329,6 +453,7 @@ class Nivel():
         for bala in self.jugador.balas:
             if bala.rect.colliderect(self.enemigo.rect):
                 self.sonido_golpe.play()
+                self.dibujar_barra_de_salud(self.enemigo.rect.x, self.enemigo.rect.y,  self.enemigo.salud)
                 self.enemigo.salud -= 5
                 self.jugador.balas.remove(bala)
 
@@ -340,6 +465,7 @@ class Nivel():
     def detectar_colisiones_jugador_enemigo(self):
         if self.jugador.rect.colliderect(self.enemigo.rect):
             self.sonido_colision.play()
+            self.dibujar_barra_de_salud(self.enemigo.rect.x, self.enemigo.rect.y,  self.enemigo.salud)
             self.jugador.salud -= self.danio_enemigo
             self.tiempo_ultimo_danio = self.tiempo_actual
             self.invulnerable = True
@@ -353,6 +479,17 @@ class Nivel():
                 item.draw(self._slave)
                 if item.recogido:
                     self.items.remove(item)
+    
+    def dibujar_barra_de_salud(self, x, y, salud):
+        pygame.draw.rect(self._slave, (255, 0, 0), (x, y - 10, salud, 5))
+    # def detectar_colisiones_jugador_trampa(self):
+    #     for trampa in self.trampa:
+    #         if self.jugador.rect.colliderect(trampa.rect):
+    #             self.puntaje = trampa.check_collision(self.jugador, self.puntaje)
+    #             trampa.update()
+    #             trampa.draw(self._slave)
+    #             if trampa.recogido:
+    #                 self.items.remove(trampa)
 
     # def dibujar_rectangulos(self):
     #     for lado in self.jugador.lados:
@@ -370,3 +507,9 @@ class Nivel():
         tiempo_restante = self.tiempo_total - int(tiempo_transcurrido)
         texto_cronometro = fuente.render("Tiempo: " + str(tiempo_restante) + " s", True, (255, 255, 255))
         self._slave.blit(texto_cronometro, (self.ancho - 200, 60))
+    # def actualizar_tiempo(self):
+    #     fuente = pygame.font.Font(None, 36)
+    #     tiempo_transcurrido = pygame.time.get_ticks() - self.tiempo_inicio
+    #     tiempo_restante = self.tiempo_total - int(tiempo_transcurrido / 1000)  # Convertir de ms a segundos
+    #     texto_cronometro = fuente.render("Tiempo: " + str(tiempo_restante) + " s", True, (255, 255, 255))
+    #     self._slave.blit(texto_cronometro, (self.ancho - 200, 60))
