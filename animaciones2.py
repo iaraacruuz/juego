@@ -25,6 +25,7 @@ personaje_salta=[pygame.image.load("C:/Users/PC/Desktop/Juego/bellota/salto/18.p
 
 personaje_camina_izquierda= girar_imagenes(personaje_camina,True,False)
 
+
 personaje_quieto_2= [pygame.image.load("C:/pygame/Juego - copia (4) - copia/bombon/quieto/6.png") ]
 personaje_camina_2=[
                 pygame.image.load("C:/Users/PC/Desktop/Juego/bombon/movimiento/0.png"),
@@ -110,3 +111,5 @@ enemigo_camina_derecha_3=[pygame.image.load("C:/pygame/Juego - copia (4) - copia
                         pygame.image.load("C:/pygame/Juego - copia (4) - copia/mojo jojo/camina/23.png")] 
 
 enemigo_camina_izquierda_3= girar_imagenes(enemigo_camina_derecha_3,True,False)
+
+posima_trampa= [pygame.image.load("C:/pygame/Juego - copia (4) - copia/posima.png")]

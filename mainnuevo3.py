@@ -27,7 +27,7 @@ FPS = 10
 RELOJ = pygame.time.Clock()
 PANTALLA = pygame.display.set_mode(TAMAÑO)
 # Fondo  
-fondo = pygame.image.load("ciudad.jpg")
+fondo = pygame.image.load("fondos\ciudad.jpg")
 fondo = pygame.transform.scale(fondo, TAMAÑO)
 
 
@@ -147,7 +147,7 @@ tanda_balas=0
 bullets=[]
 ruta_musica_bala= "rayo.mp3"
 sonido_bala= pygame.mixer.Sound(ruta_musica_bala)
-ruta_golpe="golpe.mp3"
+ruta_golpe="audios\golpe.mp3"
 sonido_golpe=pygame.mixer.Sound(ruta_golpe)
 #############################
 
