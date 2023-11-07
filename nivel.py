@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 import pygame,sys
 from archivos2 import*
 from animaciones2 import *
@@ -513,7 +513,7 @@ class Nivel():
     #     tiempo_transcurrido = pygame.time.get_ticks() - self.tiempo_inicio
     #     tiempo_restante = self.tiempo_total - int(tiempo_transcurrido / 1000)  # Convertir de ms a segundos
     #     texto_cronometro = fuente.render("Tiempo: " + str(tiempo_restante) + " s", True, (255, 255, 255))
-=======
+
 import pygame,sys
 from archivos2 import*
 from animaciones2 import *
@@ -1028,5 +1028,5 @@ class Nivel():
     #     tiempo_transcurrido = pygame.time.get_ticks() - self.tiempo_inicio
     #     tiempo_restante = self.tiempo_total - int(tiempo_transcurrido / 1000)  # Convertir de ms a segundos
     #     texto_cronometro = fuente.render("Tiempo: " + str(tiempo_restante) + " s", True, (255, 255, 255))
->>>>>>> 52117411583005a06c67a216e64fbb0df54ceb61
+
     #     self._slave.blit(texto_cronometro, (self.ancho - 200, 60))
